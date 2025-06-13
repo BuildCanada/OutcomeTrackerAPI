@@ -45,3 +45,7 @@ gem "devise", "~> 4.9"
 gem "importmap-rails", "~> 2.1"
 
 gem "propshaft", "~> 1.1"
+
+gem "ruby_llm", "~> 1.3"
+
+gem "dotenv", groups: [ :development, :test ]

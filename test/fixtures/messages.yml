@@ -1,0 +1,19 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  chat: one
+  role: MyString
+  content: MyText
+  model_id: MyString
+  input_tokens: 1
+  output_tokens: 1
+  tool_call: one
+
+two:
+  chat: two
+  role: MyString
+  content: MyText
+  model_id: MyString
+  input_tokens: 1
+  output_tokens: 1
+  tool_call: two
