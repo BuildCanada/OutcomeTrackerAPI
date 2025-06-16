@@ -43,6 +43,15 @@ module Admin
       end
     end
 
+    def destroy
+      evidence = Evidence.find(params[:id])
+      if evidence.destroy
+        render json: { success: true, message: "Evidence deleted." }
+      else
+        render json: { success: false, errors: evidence.errors.full_messages }, status: :unprocessable_entity
+      end
+    end
+
     private
 
     def evidence_params

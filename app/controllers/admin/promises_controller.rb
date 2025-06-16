@@ -40,6 +40,15 @@ module Admin
         end
       end
 
+      def destroy
+        promise = Promise.find(params[:id])
+        if promise.destroy
+            render json: { success: true, message: "Promise deleted." }
+        else
+            render json: { success: false, errors: promise.errors.full_messages }, status: :unprocessable_entity
+        end
+      end
+
       private
 
       def promise_params

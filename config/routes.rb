@@ -12,8 +12,8 @@ Rails.application.routes.draw do
   resources :evidences, only: [ :index, :show ]
 
   namespace :admin do
-    resources :promises, only: [:index, :show, :update]
-    resources :evidence, only: [:index, :show, :update]
+    resources :promises, only: [:index, :show, :update, :destroy]
+    resources :evidence, only: [:index, :show, :update, :destroy]
   end
 
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
