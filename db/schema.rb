@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_06_13_223805) do
+ActiveRecord::Schema[8.0].define(version: 2025_06_17_020523) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -62,6 +62,19 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_13_223805) do
     t.index ["slug"], name: "index_departments_on_slug"
   end
 
+  create_table "entries", force: :cascade do |t|
+    t.bigint "feed_id", null: false
+    t.string "title"
+    t.string "url"
+    t.datetime "scraped_at", precision: nil
+    t.string "description"
+    t.bigint "government_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["feed_id"], name: "index_entries_on_feed_id"
+    t.index ["government_id"], name: "index_entries_on_government_id"
+  end
+
   create_table "evidences", force: :cascade do |t|
     t.string "raw_gazette_notice_id"
     t.text "rias_summary"
@@ -86,6 +99,19 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_13_223805) do
     t.jsonb "llm_analysis_raw", default: {}
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+  end
+
+  create_table "feeds", force: :cascade do |t|
+    t.string "title"
+    t.text "description"
+    t.string "language"
+    t.string "url"
+    t.datetime "last_scraped", precision: nil
+    t.jsonb "raw"
+    t.bigint "government_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["government_id"], name: "index_feeds_on_government_id"
   end
 
   create_table "good_job_batches", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -318,6 +344,9 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_13_223805) do
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "departments", "governments"
+  add_foreign_key "entries", "feeds"
+  add_foreign_key "entries", "governments"
+  add_foreign_key "feeds", "governments"
   add_foreign_key "messages", "chats"
   add_foreign_key "messages", "tool_calls"
   add_foreign_key "ministers", "departments"

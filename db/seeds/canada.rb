@@ -503,6 +503,30 @@ ministers_data.each do |attrs|
   end
 end
 
+puts "Seeding Feeds..."
+
+feed_data = [
+  {
+    title: "Canada Gazette Part I: Official Regulations",
+    url: "https://gazette.gc.ca/rss/p1-eng.xml"
+  },
+  {
+    title: "Canada Gazette Part II: Official Regulations",
+    url: "https://gazette.gc.ca/rss/p2-eng.xml"
+  },
+  {
+    title: "Canada Gazette Part III: Acts of Parliament",
+    url: "https://gazette.gc.ca/rss/en-ls-eng.xml"
+  }
+]
+
+feed_data.each do |attrs|
+  feed = Feed.find_or_create_by(
+    **attrs,
+    government: government
+  )
+end
+
 puts "Seeding Promises..."
 
 promise_data = {

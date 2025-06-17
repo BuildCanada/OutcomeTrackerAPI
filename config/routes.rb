@@ -1,11 +1,18 @@
 Rails.application.routes.draw do
-  authenticate :user, lambda { |u| u.admin? } do
+  if Rails.env.development?
     mount GoodJob::Engine => "/admin/good_job"
     mount Avo::Engine => "/admin"
+  else
+    authenticate :user, lambda { |u| u.admin? } do
+      mount GoodJob::Engine => "/admin/good_job"
+      mount Avo::Engine => "/admin"
+    end
   end
 
   devise_for :users
 
+  resources :feeds, only: [ :index, :show ]
+  resources :entries, only: [ :index, :show ]
   resources :ministers, only: [ :index, :show ]
   resources :departments, only: [ :index, :show ]
   resources :promises, only: [ :index, :show ]
