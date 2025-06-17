@@ -55,11 +55,11 @@ class CreatePromises < ActiveRecord::Migration[8.0]
       t.string :source_type
       t.string :status
       t.text :text
-      
+
       t.text :extracted_keywords_concepts, array: true, default: []
       t.text :intended_impact_and_objectives, array: true, default: []
       t.text :what_it_means_for_canadians, array: true, default: []
-      
+
       t.text :linked_evidence_ids, array: true, default: []
       t.text :relevant_departments, array: true, default: []
 

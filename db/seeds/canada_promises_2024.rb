@@ -84,7 +84,7 @@ promises = promise_data.split("\n").map do |line|
     commitment_history_rationale: data["commitment_history_rationale"],
     key_points: data["key_points"],
     policy_areas: data["policy_areas"],
-    target_groups: data["target_groups"],
+    target_groups: data["target_groups"]
   }
 end
 

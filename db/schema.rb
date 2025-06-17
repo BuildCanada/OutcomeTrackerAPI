@@ -65,10 +65,16 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_17_020523) do
   create_table "entries", force: :cascade do |t|
     t.bigint "feed_id", null: false
     t.string "title"
+    t.datetime "published_at", precision: nil
+    t.string "external_id"
     t.string "url"
     t.datetime "scraped_at", precision: nil
-    t.string "description"
+    t.string "summary"
     t.bigint "government_id", null: false
+    t.jsonb "raw"
+    t.string "raw_html"
+    t.string "parsed_html"
+    t.string "parsed_markdown"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["feed_id"], name: "index_entries_on_feed_id"

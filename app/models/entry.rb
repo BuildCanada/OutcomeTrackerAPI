@@ -24,15 +24,15 @@ class Entry < ApplicationRecord
     temp_file = Tempfile.new("entry_html", encoding: "utf-8")
     temp_file.write(raw_html)
 
-    md_json = `defuddle parse #{temp_file.path} -m -j`
-    md_html = `defuddle parse #{temp_file.path} -j`
+    md_json, err, status = Open3.capture3("defuddle", "parse", temp_file.path, "-m", "-j")
+    md_html, err, status = Open3.capture3("defuddle", "parse", temp_file.path, "-j")
 
     # replace anything before the first { deffudle returns errors and is dumb here.
     md_json = "{" + md_json.split("{", 2).last
-    md_html = "{" + md_html.split("{", 2).last
+    html_json = "{" + md_html.split("{", 2).last
 
     self.parsed_markdown = JSON.parse(md_json)["content"]
-    self.parsed_html = JSON.parse(md_html)["content"]
+    self.parsed_html = JSON.parse(html_json)["content"]
 
     temp_file.close
     self.save
