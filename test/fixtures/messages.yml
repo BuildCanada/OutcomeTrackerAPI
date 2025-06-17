@@ -7,7 +7,6 @@ one:
   model_id: MyString
   input_tokens: 1
   output_tokens: 1
-  tool_call: one
 
 two:
   chat: two
@@ -16,4 +15,3 @@ two:
   model_id: MyString
   input_tokens: 1
   output_tokens: 1
-  tool_call: two
