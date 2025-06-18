@@ -3,9 +3,8 @@ class DepartmentsController < ApplicationController
 
   # GET /departments`
   def index
-    @departments = Department.all
-
-    render json: @departments
+    @departments = Department.order(:display_name)
+    render json: @departments.as_json(only: [:id, :display_name, :slug, :priority, :official_name])
   end
 
   # GET /departments/1

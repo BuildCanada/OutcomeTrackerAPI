@@ -114,6 +114,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_17_020523) do
     t.string "url"
     t.datetime "last_scraped", precision: nil
     t.jsonb "raw"
+    t.string "source_url"
     t.bigint "government_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
