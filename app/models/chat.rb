@@ -19,6 +19,10 @@ class Chat < ApplicationRecord
 
     attributes = JSON.parse(message.content)
 
+    if attributes.nil?
+      raise "Nil response from LLM, message: #{message.inspect}"
+    end
+
     self.update(attributes)
   end
 end
