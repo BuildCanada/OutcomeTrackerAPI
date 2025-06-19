@@ -1,13 +1,23 @@
 # GoodJob configuration
 Rails.application.configure do
   # Configure GoodJob settings
-  config.good_job.execution_mode = :external
+  # config.good_job.execution_mode = :external
   config.good_job.max_threads = 5
   config.good_job.poll_interval = 30
   config.good_job.shutdown_timeout = 25
 
   # Enable cron jobs
   config.good_job.enable_cron = true
+  config.good_job.cron_graceful_restart_period = 1.minute
+
+  config.good_job.cron = {
+    feed_refresh: { # each recurring job must have a unique key
+      cron: "every 3 hours", # cron-style scheduling format by fugit gem
+      class: "FeedRefresherJob", # name of the job class as a String; must reference an Active Job job class
+      description: "Refreshed feeds and creates new entries", # optional description that appears in Dashboard,
+      enabled_by_default: -> { Rails.env.production? } # Only enable in production, otherwise can be enabled manually through Dashboard
+    }
+  }
 
   # Preserve job records for debugging
   config.good_job.preserve_job_records = true
@@ -18,6 +28,7 @@ Rails.application.configure do
 
   # Queue configuration
   config.good_job.queues = "*"
+
 
   # Smaller batch size for better performance
   config.good_job.cleanup_interval_jobs = 1000

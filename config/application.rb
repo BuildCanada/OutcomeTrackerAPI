@@ -36,18 +36,12 @@ module OutcomeTrackerApi
     # config.time_zone = "Central Time (US & Canada)"
     # config.eager_load_paths << Rails.root.join("extras")
 
+    # Use GoodJob for Active Job queue adapter
+    config.active_job.queue_adapter = :good_job
+
     # Only loads a smaller set of middleware suitable for API only apps.
     # Middleware like session, flash, cookies can be added back manually.
     # Skip views, helpers and assets when generating a new resource.
     config.api_only = false
-
-    config.good_job.cron = {
-      feed_refresh: { # each recurring job must have a unique key
-        cron: "every 3 hours", # cron-style scheduling format by fugit gem
-        class: "FeedRefresherJob", # name of the job class as a String; must reference an Active Job job class
-        description: "Refreshed feeds and creates new entries", # optional description that appears in Dashboard,
-        enabled_by_default: -> { Rails.env.production? } # Only enable in production, otherwise can be enabled manually through Dashboard
-      }
-    }
   end
 end

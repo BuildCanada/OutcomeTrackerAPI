@@ -1,5 +1,4 @@
 Rails.application.routes.draw do
-  resources :evidences
   if Rails.env.development?
     mount GoodJob::Engine => "/admin/good_job"
     mount Avo::Engine => "/admin"
