@@ -15,27 +15,49 @@ FROM docker.io/library/ruby:$RUBY_VERSION-slim AS base
 WORKDIR /rails
 
 # Install base packages
-RUN apt-get update -qq && \
-    apt-get install --no-install-recommends -y curl libjemalloc2 libvips postgresql-client && \
-    rm -rf /var/lib/apt/lists /var/cache/apt/archives
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    apt-get update -qq && \
+    apt-get install --no-install-recommends -y curl libjemalloc2 libvips postgresql-client xz-utils imagemagick
+
+# install prebuilt node binary
+ARG TARGETARCH
+RUN case "$TARGETARCH" in \
+    amd64) NODE_ARCH=x64 ;; \
+    arm64) NODE_ARCH=arm64 ;; \
+    armhf) NODE_ARCH=armv7l ;; \
+    *) echo "Unsupported architecture: $TARGETARCH" && exit 1 ;; \
+    esac && \
+    curl -o node-v22.16.0-linux-${NODE_ARCH}.tar.xz https://nodejs.org/dist/v22.16.0/node-v22.16.0-linux-${NODE_ARCH}.tar.xz && \
+    tar -xJf node-v22.16.0-linux-${NODE_ARCH}.tar.xz && \
+    mv node-v22.16.0-linux-${NODE_ARCH} /usr/local/node && \
+    rm -rf node-v22.16.0-linux-${NODE_ARCH}.tar.xz
 
 # Set production environment
 ENV RAILS_ENV="production" \
     BUNDLE_DEPLOYMENT="1" \
     BUNDLE_PATH="/usr/local/bundle" \
-    BUNDLE_WITHOUT="development"
+    BUNDLE_WITHOUT="development" \
+    PATH="/usr/local/node/bin:/usr/local/node/lib/node_modules:$PATH"
+
+RUN --mount=type=cache,target=/root/.npm \
+    npm install -g defuddle-cli
 
 # Throw-away build stage to reduce size of final image
 FROM base AS build
 
 # Install packages needed to build gems
-RUN apt-get update -qq && \
-    apt-get install --no-install-recommends -y build-essential git libpq-dev libyaml-dev pkg-config && \
-    rm -rf /var/lib/apt/lists /var/cache/apt/archives
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    apt-get update -qq && \
+    apt-get install --no-install-recommends -y build-essential git libpq-dev libyaml-dev pkg-config
 
 # Install application gems
 COPY Gemfile Gemfile.lock ./
-RUN bundle install && \
+RUN --mount=type=cache,target=/tmp/bundle-cache \
+    cp -r /tmp/bundle-cache/* "${BUNDLE_PATH}/" 2>/dev/null || true && \
+    bundle install && \
+    cp -r "${BUNDLE_PATH}"/* /tmp/bundle-cache/ && \
     rm -rf ~/.bundle/ "${BUNDLE_PATH}"/ruby/*/cache "${BUNDLE_PATH}"/ruby/*/bundler/gems/*/.git && \
     bundle exec bootsnap precompile --gemfile
 

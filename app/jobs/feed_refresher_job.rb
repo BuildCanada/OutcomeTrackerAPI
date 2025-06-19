@@ -1,9 +1,9 @@
 class FeedRefresherJob < ApplicationJob
   queue_as :default
 
-  def perform(feed = nil)
+  def perform(feed: nil)
     if feed.nil?
-      Feed.all.each { |f| FeedRefresherJob.perform_later(f) }
+      Feed.find_each { |f| FeedRefresherJob.perform_later(feed: f) }
     else
       feed.refresh!
     end
