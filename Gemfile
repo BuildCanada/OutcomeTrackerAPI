@@ -9,7 +9,7 @@ gem "puma", ">= 5.0"
 # Use GoodJob for Active Job queue adapter
 gem "good_job", "~> 4.10", ">= 4.10.2"
 # Build JSON APIs with ease [https://github.com/rails/jbuilder]
-# gem "jbuilder"
+gem "jbuilder"
 
 # Use Active Model has_secure_password [https://guides.rubyonrails.org/active_model_basics.html#securepassword]
 # gem "bcrypt", "~> 3.1.7"
@@ -46,7 +46,8 @@ gem "importmap-rails", "~> 2.1"
 
 gem "propshaft", "~> 1.1"
 
-gem "ruby_llm", "~> 1.3"
+gem "ruby_llm", "~> 1.3", github: "xrendan/ruby_llm", branch: "structured-output"
+# gem "ruby_llm", "~> 1.3", path: "../ruby_llm"
 
 gem "dotenv", groups: [ :development, :test ]
 
@@ -55,3 +56,5 @@ gem "feedjira", "~> 3.2"
 gem "http", "~> 5.3"
 
 gem "iconv", "~> 1.1"
+
+gem "structify", "~> 0.3.4"

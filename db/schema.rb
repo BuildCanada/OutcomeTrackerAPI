@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_06_17_020523) do
+ActiveRecord::Schema[8.0].define(version: 2025_06_19_005535) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -42,12 +42,28 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_17_020523) do
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
   end
 
+  create_table "activities", force: :cascade do |t|
+    t.bigint "entry_id", null: false
+    t.bigint "government_id", null: false
+    t.string "title"
+    t.string "summary"
+    t.string "source_url"
+    t.jsonb "info"
+    t.datetime "published_at", precision: nil
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["entry_id"], name: "index_activities_on_entry_id"
+    t.index ["government_id"], name: "index_activities_on_government_id"
+  end
+
   create_table "chats", force: :cascade do |t|
     t.string "model_id"
     t.bigint "record_id"
     t.string "record_type"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.jsonb "json_attributes"
+    t.string "type"
   end
 
   create_table "departments", force: :cascade do |t|
@@ -77,34 +93,30 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_17_020523) do
     t.string "parsed_markdown"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.datetime "activities_extracted_at", precision: nil
     t.index ["feed_id"], name: "index_entries_on_feed_id"
     t.index ["government_id"], name: "index_entries_on_government_id"
   end
 
   create_table "evidences", force: :cascade do |t|
-    t.string "raw_gazette_notice_id"
-    t.text "rias_summary"
-    t.text "description_or_details"
-    t.datetime "evidence_date"
-    t.string "evidence_id"
-    t.string "evidence_source_type"
-    t.float "hybrid_linking_avg_confidence"
-    t.string "hybrid_linking_method"
-    t.datetime "hybrid_linking_timestamp"
-    t.datetime "ingested_at"
-    t.string "parliament_session_id"
-    t.datetime "promise_linking_processed_at"
-    t.string "promise_linking_status"
-    t.integer "promise_links_found2"
-    t.string "source_document_raw_id"
-    t.string "source_url"
-    t.text "title_or_summary"
-    t.text "key_concepts", default: [], array: true
-    t.text "linked_departments", default: [], array: true
-    t.text "promise_ids", default: [], array: true
-    t.jsonb "llm_analysis_raw", default: {}
+    t.bigint "activity_id", null: false
+    t.bigint "promise_id", null: false
+    t.string "impact"
+    t.integer "impact_magnitude"
+    t.string "impact_reason"
+    t.datetime "linked_at", precision: nil
+    t.bigint "linked_by_id"
+    t.string "link_type"
+    t.string "link_reason"
+    t.boolean "review"
+    t.bigint "reviewed_by_id"
+    t.datetime "reviewed_at", precision: nil
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["activity_id"], name: "index_evidences_on_activity_id"
+    t.index ["linked_by_id"], name: "index_evidences_on_linked_by_id"
+    t.index ["promise_id"], name: "index_evidences_on_promise_id"
+    t.index ["reviewed_by_id"], name: "index_evidences_on_reviewed_by_id"
   end
 
   create_table "feeds", force: :cascade do |t|
@@ -350,9 +362,15 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_17_020523) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "activities", "entries"
+  add_foreign_key "activities", "governments"
   add_foreign_key "departments", "governments"
   add_foreign_key "entries", "feeds"
   add_foreign_key "entries", "governments"
+  add_foreign_key "evidences", "activities"
+  add_foreign_key "evidences", "promises"
+  add_foreign_key "evidences", "users", column: "linked_by_id"
+  add_foreign_key "evidences", "users", column: "reviewed_by_id"
   add_foreign_key "feeds", "governments"
   add_foreign_key "messages", "chats"
   add_foreign_key "messages", "tool_calls"

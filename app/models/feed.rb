@@ -20,8 +20,8 @@ class Feed < ApplicationRecord
 
   def create_entries!(entries)
     entries.each do |entry|
+      raise "URL is required" unless entry.url.present?
       Entry.find_or_create_by!(government: government, feed: self, url: entry.url) do |rec|
-        puts
         rec.title = entry.title
         rec.summary = entry.summary
         rec.published_at = entry.published

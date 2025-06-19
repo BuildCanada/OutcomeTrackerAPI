@@ -7,26 +7,17 @@ class Avo::Resources::Evidence < Avo::BaseResource
 
   def fields
     field :id, as: :id
-    field :raw_gazette_notice_id, as: :text
-    field :rias_summary, as: :textarea
-    field :description_or_details, as: :textarea
-    field :evidence_date, as: :date_time
-    field :evidence_id, as: :text
-    field :evidence_source_type, as: :text
-    field :hybrid_linking_avg_confidence, as: :number
-    field :hybrid_linking_method, as: :text
-    field :hybrid_linking_timestamp, as: :date_time
-    field :ingested_at, as: :date_time
-    field :parliament_session_id, as: :text
-    field :promise_linking_processed_at, as: :date_time
-    field :promise_linking_status, as: :text
-    field :promise_links_found2, as: :number
-    field :source_document_raw_id, as: :text
-    field :source_url, as: :text
-    field :title_or_summary, as: :textarea
-    field :key_concepts, as: :textarea
-    field :linked_departments, as: :textarea
-    field :promise_ids, as: :textarea
-    field :llm_analysis_raw, as: :code
+    field :activity, as: :belongs_to
+    field :promise, as: :belongs_to
+    field :impact, as: :text
+    field :impact_magnitude, as: :number
+    field :impact_reason, as: :text
+    field :linked_at, as: :date_time
+    field :linked_by, as: :belongs_to
+    field :link_type, as: :text
+    field :link_reason, as: :text
+    field :review, as: :boolean
+    field :reviewed_by, as: :belongs_to
+    field :reviewed_at, as: :date_time
   end
 end

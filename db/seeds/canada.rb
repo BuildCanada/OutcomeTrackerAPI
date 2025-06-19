@@ -545,36 +545,4 @@ require_relative 'canada_promises_2024'
 
 puts "Seeding Evidences..."
 
-evidence_data = {
-  raw_gazette_notice_id: "GN-2024-001",
-  rias_summary: "This notice outlines planned policy updates...",
-  description_or_details: "Full text of the Gazette outlining broadband expansion...",
-  evidence_date: "2024-04-20T09:00:00Z",
-  evidence_id: "EVID1234",
-  evidence_source_type: "gazette",
-  hybrid_linking_avg_confidence: 0.87,
-  hybrid_linking_method: "AI + manual",
-  hybrid_linking_timestamp: "2024-04-21T10:00:00Z",
-  ingested_at: "2024-04-20T12:00:00Z",
-  parliament_session_id: "44-1",
-  promise_linking_processed_at: "2024-04-21T12:30:00Z",
-  promise_linking_status: "linked",
-  promise_links_found2: 1,
-  source_document_raw_id: "DOC-2024-XYZ",
-  source_url: "https://example.com/evidence-doc",
-  title_or_summary: "Government expands rural broadband",
-  key_concepts: [ "broadband", "rural", "infrastructure" ],
-  linked_departments: [ "ISED" ],
-  promise_ids: [ "LPC_20250419_OTHER_71c8234b" ],
-  llm_analysis_raw: {
-    "summary" => "The document supports the stated promise to expand rural digital access.",
-    "confidence" => 0.92
-  }
-}
-
-Evidence.find_or_initialize_by(evidence_id: evidence_data[:evidence_id]).tap do |e|
-  e.assign_attributes(evidence_data)
-  e.save!
-end
-
 puts "Done seeding"

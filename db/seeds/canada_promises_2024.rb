@@ -89,7 +89,7 @@ promises = promise_data.split("\n").map do |line|
 end
 
 promises.each do |promise|
-  Promise.find_or_create_by!(promise_id: promise["promise_id"]) do |e|
+  Promise.find_or_create_by!(promise_id: promise[:promise_id]) do |e|
     e.assign_attributes(promise)
   end
 end

@@ -1,4 +1,5 @@
 Rails.application.routes.draw do
+  resources :evidences
   if Rails.env.development?
     mount GoodJob::Engine => "/admin/good_job"
     mount Avo::Engine => "/admin"
@@ -10,7 +11,7 @@ Rails.application.routes.draw do
   end
 
   devise_for :users
-
+  resources :activities, only: [ :index, :show ]
   resources :feeds, only: [ :index, :show ]
   resources :entries, only: [ :index, :show ]
   resources :ministers, only: [ :index, :show ]

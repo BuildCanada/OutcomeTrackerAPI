@@ -41,11 +41,13 @@ module OutcomeTrackerApi
     # Skip views, helpers and assets when generating a new resource.
     config.api_only = false
 
-
-    # Re-enable middleware needed for the Good Job Dashboard
-    # config.middleware.use Rack::MethodOverride
-    # config.middleware.use ActionDispatch::Flash
-    # config.middleware.use ActionDispatch::Cookies
-    # config.middleware.use ActionDispatch::Session::CookieStore
+    config.good_job.cron = {
+      feed_refresh: { # each recurring job must have a unique key
+        cron: "every 3 hours", # cron-style scheduling format by fugit gem
+        class: "FeedRefreshJob", # name of the job class as a String; must reference an Active Job job class
+        description: "Refreshed feeds and creates new entries", # optional description that appears in Dashboard,
+        enabled_by_default: -> { Rails.env.production? } # Only enable in production, otherwise can be enabled manually through Dashboard
+      }
+    }
   end
 end

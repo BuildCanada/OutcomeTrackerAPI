@@ -1,3 +1,18 @@
+GIT
+  remote: https://github.com/xrendan/ruby_llm.git
+  revision: c849a1ef77e533190173dc7d6aa274e0f491b29f
+  branch: structured-output
+  specs:
+    ruby_llm (1.3.1)
+      base64
+      event_stream_parser (~> 1)
+      faraday (>= 1.10.0)
+      faraday-multipart (>= 1)
+      faraday-net_http (>= 1)
+      faraday-retry (>= 1)
+      marcel (~> 1.0)
+      zeitwerk (~> 2)
+
 GEM
   remote: https://rubygems.org/
   specs:
@@ -78,6 +93,8 @@ GEM
     addressable (2.8.7)
       public_suffix (>= 2.0.2, < 7.0)
     ast (2.4.3)
+    attr_json (2.5.0)
+      activerecord (>= 6.0.0, < 8.1)
     avo (3.21.1)
       actionview (>= 6.1)
       active_link_to
@@ -185,6 +202,9 @@ GEM
       pp (>= 0.6.0)
       rdoc (>= 4.0.0)
       reline (>= 0.4.2)
+    jbuilder (2.13.0)
+      actionview (>= 5.0.0)
+      activesupport (>= 5.0.0)
     json (2.12.2)
     language_server-protocol (3.17.0.5)
     lint_roller (1.1.0)
@@ -342,18 +362,12 @@ GEM
       rubocop-performance (>= 1.24)
       rubocop-rails (>= 2.30)
     ruby-progressbar (1.13.0)
-    ruby_llm (1.3.1)
-      base64
-      event_stream_parser (~> 1)
-      faraday (>= 1.10.0)
-      faraday-multipart (>= 1)
-      faraday-net_http (>= 1)
-      faraday-retry (>= 1)
-      marcel (~> 1.0)
-      zeitwerk (~> 2)
     sax-machine (1.3.2)
     securerandom (0.4.1)
     stringio (3.1.7)
+    structify (0.3.4)
+      activesupport (>= 7.0, < 9.0)
+      attr_json (~> 2.1)
     thor (1.3.2)
     timeout (0.4.3)
     turbo-rails (2.0.16)
@@ -404,13 +418,15 @@ DEPENDENCIES
   http (~> 5.3)
   iconv (~> 1.1)
   importmap-rails (~> 2.1)
+  jbuilder
   pg (~> 1.1)
   propshaft (~> 1.1)
   puma (>= 5.0)
   rack-cors
   rails (~> 8.0.2)
   rubocop-rails-omakase
-  ruby_llm (~> 1.3)
+  ruby_llm (~> 1.3)!
+  structify (~> 0.3.4)
   tzinfo-data
 
 BUNDLED WITH

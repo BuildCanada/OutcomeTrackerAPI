@@ -1,6 +1,9 @@
 class Entry < ApplicationRecord
+  include Structify::Model
+
   belongs_to :feed
   belongs_to :government
+  has_many :activity_extractors, as: :record
 
   after_commit :fetch_data!, on: [ :create ]
 
@@ -44,5 +47,23 @@ class Entry < ApplicationRecord
 
   def create_subentries!
     # Some data sources (like the canada gazette have an RSS feed that is just an index of all the entries, so we need to fetch the actual entries from the feed)
+  end
+
+  def extract_activities!
+    extractor = ActivityExtractor.create!(record: self)
+    extractor.extract_activities!
+    self.activities_extracted_at = Time.now
+  end
+
+  def format_for_llm
+    <<~XML
+    <political_artifact>
+      <source>#{feed.title}</source>
+      <published_at>#{published_at}</published_at>
+      <title>#{title}</title>
+      <summary>#{summary}</summary>
+      <content>#{parsed_markdown}</content>
+    </political_artifact>
+    XML
   end
 end
