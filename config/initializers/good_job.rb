@@ -1,7 +1,7 @@
 # GoodJob configuration
 Rails.application.configure do
   # Configure GoodJob settings
-  
+
   # For async mode, how often to poll for new jobs, does not apply to external mode
   config.good_job.poll_interval = 30
   config.good_job.shutdown_timeout = 25
