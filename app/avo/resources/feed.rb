@@ -14,5 +14,7 @@ class Avo::Resources::Feed < Avo::BaseResource
     field :last_scraped, as: :date_time
     field :raw, as: :code
     field :government, as: :belongs_to
+
+    field entries, as: :has_many
   end
 end
