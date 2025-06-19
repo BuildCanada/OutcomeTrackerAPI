@@ -15,6 +15,15 @@ class Entry < ApplicationRecord
 
 
   def fetch_data!(inline: false)
+    # TODO: make this more robust, this should not be configured globally.
+    # Track parliament session dates for matching?
+    if self.published_at < Time.parse("2025-05-26")
+      self.skipped_at = Time.now
+      self.skip_reason = "Too old, published before 2025-05-26 (Carney's election)"
+      self.save!
+      return
+    end
+
     unless inline
       return EntryDataFetcherJob.perform_later(self)
     end
