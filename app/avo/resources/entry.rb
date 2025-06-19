@@ -11,7 +11,7 @@ class Avo::Resources::Entry < Avo::BaseResource
     field :title, as: :text
     field :url, as: :text
     field :published_at, as: :date_time
-    field :skip_reason, as: :date_time
+    field :skip_reason, as: :text
     field :skipped_at, as: :date_time
     field :scraped_at, as: :date_time
     field :is_index, as: :boolean
