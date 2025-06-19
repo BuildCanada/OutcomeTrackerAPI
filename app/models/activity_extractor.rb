@@ -89,5 +89,7 @@ class ActivityExtractor < Chat
         )
       end
     end
+    self.record.activities_extracted_at = Time.now
+    self.record.save!
   end
 end
