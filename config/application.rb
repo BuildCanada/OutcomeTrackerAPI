@@ -44,7 +44,7 @@ module OutcomeTrackerApi
     config.good_job.cron = {
       feed_refresh: { # each recurring job must have a unique key
         cron: "every 3 hours", # cron-style scheduling format by fugit gem
-        class: "FeedRefreshJob", # name of the job class as a String; must reference an Active Job job class
+        class: "FeedRefresherJob", # name of the job class as a String; must reference an Active Job job class
         description: "Refreshed feeds and creates new entries", # optional description that appears in Dashboard,
         enabled_by_default: -> { Rails.env.production? } # Only enable in production, otherwise can be enabled manually through Dashboard
       }
