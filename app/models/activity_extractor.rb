@@ -64,8 +64,12 @@ class ActivityExtractor < Chat
 
     self.extract! p
 
-
     activities.each do |activity|
+      if activity["impacted_promises"].blank?
+        Rails.logger.info("No impacted promises found for activity: #{activity["title"]}, extractor_id: #{self.id}")
+        next
+      end
+
       rec = Activity.create!(
         government_id: self.record.government_id,
         entry: self.record,
