@@ -7,11 +7,6 @@ class Avo::Resources::Minister < Avo::BaseResource
   #
   self.title = :compound_name
 
-  def name
-    "Test"
-    # "#{first_name} #{last_name}"
-  end
-
   def fields
     field :id, as: :id
     field :first_name, as: :text

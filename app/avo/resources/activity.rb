@@ -10,10 +10,9 @@ class Avo::Resources::Activity < Avo::BaseResource
     field :entry, as: :belongs_to
     field :government, as: :belongs_to
     field :title, as: :text
-    field :details, as: :text
+    field :summary, as: :text
     field :source_url, as: :text
     field :info, as: :code
-    field :publication_date, as: :date
-    field :in_force_date, as: :date
+    field :published_at, as: :date_time
   end
 end

@@ -8,7 +8,7 @@ class Avo::Resources::Chat < Avo::BaseResource
   def fields
     field :id, as: :id
     field :model_id, as: :text
-    field :record, as: :belongs_to
-    field :record_type, as: :text
+
+    field :messages, as: :has_many
   end
 end

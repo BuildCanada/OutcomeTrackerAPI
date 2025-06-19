@@ -79,7 +79,8 @@ class ActivityExtractor < Chat
         entry: self.record,
         title: activity["title"],
         summary: activity["summary"],
-        published_at: self.record.published_at
+        published_at: self.record.published_at,
+        scraped_at: self.record.scraped_at
       )
 
       activity["impacted_promises"].each do |impacted_promise|

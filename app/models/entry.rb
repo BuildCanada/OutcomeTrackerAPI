@@ -5,6 +5,7 @@ class Entry < ApplicationRecord
   belongs_to :government
   belongs_to :parent, class_name: "Entry", inverse_of: :children, optional: true
   has_many :activity_extractors, as: :record
+  has_many :activities
   has_many :children, class_name: "Entry", foreign_key: "parent_id"
 
 

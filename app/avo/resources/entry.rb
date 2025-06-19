@@ -10,8 +10,11 @@ class Avo::Resources::Entry < Avo::BaseResource
     field :feed, as: :belongs_to
     field :title, as: :text
     field :url, as: :text
+    field :published_at, as: :date_time
     field :scraped_at, as: :date_time
-    field :description, as: :textarea
-    field :government, as: :belongs_to
+    field :summary, as: :textarea
+    field :activities, as: :has_many
+
+    field :parsed_markdown, as: :markdown
   end
 end
