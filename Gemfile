@@ -58,3 +58,5 @@ gem "http", "~> 5.3"
 gem "iconv", "~> 1.1"
 
 gem "structify", "~> 0.3.4"
+
+gem "nokogiri", "~> 1.18"

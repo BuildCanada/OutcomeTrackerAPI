@@ -3,56 +3,70 @@ class Entry < ApplicationRecord
 
   belongs_to :feed
   belongs_to :government
+  belongs_to :parent, class_name: "Entry", inverse_of: :children, optional: true
   has_many :activity_extractors, as: :record
+  has_many :children, class_name: "Entry", foreign_key: "parent_id"
+
 
   after_commit :fetch_data!, on: [ :create ]
 
   validates :url, presence: true, uniqueness: true
 
 
-  def fetch_data!(in_background: true)
-    if in_background
+  def fetch_data!(inline: false)
+    unless inline
       return EntryDataFetcherJob.perform_later(self)
     end
     # Fetch data from external source
 
     r = HTTP.get(url)
-    html = r.body.to_s
 
-    ic = Iconv.new("UTF-8//IGNORE", "UTF-8")
-    self.raw_html = ic.iconv(html + " ")[0..-2]
+    if r.status >= 300 or r.status < 200
+      Rails.logger.error("Error fetching data for entry #{id}: #{r.status}")
+      raise HTTP::Error.new("Failed to fetch #{url} Status code #{r.status}")
+    end
+    self.raw_html = Defuddle.prepare_html(r.body.to_s)
 
-    # Call defuddle to parse the HTML
+    self.parsed_markdown, self.parsed_html = Defuddle.defuddle(raw_html)
+    self.scraped_at = Time.now
 
-    temp_file = Tempfile.new("entry_html", encoding: "utf-8")
-    temp_file.write(raw_html)
+    self.is_index = document_relative_links.any?
+    self.save!
 
-    md_json, err, status = Open3.capture3("defuddle", "parse", temp_file.path, "-m", "-j")
-    md_html, err, status = Open3.capture3("defuddle", "parse", temp_file.path, "-j")
-
-    # replace anything before the first { deffudle returns errors and is dumb here.
-    md_json = "{" + md_json.split("{", 2).last
-    html_json = "{" + md_html.split("{", 2).last
-
-    self.parsed_markdown = JSON.parse(md_json)["content"]
-    self.parsed_html = JSON.parse(html_json)["content"]
-
-    temp_file.close
-    self.save
-    create_subentries!
+    if is_index
+      create_subentries! if parent.nil? # only create subentries if this is the top-level entry
+    else
+      extract_activities!
+    end
   rescue => e
-    puts parsed_markdown
+    Rails.logger.error("Error fetching data for entry #{id}: #{e.message}")
     raise e
   end
 
   def create_subentries!
-    # Some data sources (like the canada gazette have an RSS feed that is just an index of all the entries, so we need to fetch the actual entries from the feed)
+    # get any document relative links from the html, this is somewhat specific to Canada Gazette, but we'll handle
+    # other edge cases when they come up.
+    document_relative_links.each do |relative_link, link, text|
+      Entry.find_or_create_by!(government: government, feed: feed, url: link) do |rec|
+        rec.title = text.gsub(/\s+/, " ").strip # remove any extra whitespace and trim
+        rec.published_at = published_at
+        rec.parent = self
+      end
+    end
   end
 
-  def extract_activities!
+  def document_relative_links
+    HtmlExtractor.extract_links_with_text(raw_html, url, include: [ :document_relative ])
+  end
+
+  def extract_activities!(inline: false)
+    unless inline
+      return EntryActivityExtractorJob.perform_later(self)
+    end
     extractor = ActivityExtractor.create!(record: self)
     extractor.extract_activities!
     self.activities_extracted_at = Time.now
+    self.save!
   end
 
   def format_for_llm

@@ -1,6 +1,7 @@
 class Feed < ApplicationRecord
   belongs_to :government
 
+  has_many :entries, dependent: :destroy
 
   def refresh!
     # Implement the logic to refresh the feed data

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_06_19_005535) do
+ActiveRecord::Schema[8.0].define(version: 2025_06_19_173204) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -94,8 +94,11 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_19_005535) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.datetime "activities_extracted_at", precision: nil
+    t.boolean "is_index"
+    t.bigint "parent_id"
     t.index ["feed_id"], name: "index_entries_on_feed_id"
     t.index ["government_id"], name: "index_entries_on_government_id"
+    t.index ["parent_id"], name: "index_entries_on_parent_id"
   end
 
   create_table "evidences", force: :cascade do |t|
@@ -365,6 +368,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_19_005535) do
   add_foreign_key "activities", "entries"
   add_foreign_key "activities", "governments"
   add_foreign_key "departments", "governments"
+  add_foreign_key "entries", "entries", column: "parent_id"
   add_foreign_key "entries", "feeds"
   add_foreign_key "entries", "governments"
   add_foreign_key "evidences", "activities"

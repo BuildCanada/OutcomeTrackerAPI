@@ -419,6 +419,7 @@ DEPENDENCIES
   iconv (~> 1.1)
   importmap-rails (~> 2.1)
   jbuilder
+  nokogiri (~> 1.18)
   pg (~> 1.1)
   propshaft (~> 1.1)
   puma (>= 5.0)
