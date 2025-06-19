@@ -1,5 +1,7 @@
 class CreateEvidences < ActiveRecord::Migration[8.0]
   def change
+    drop_table :evidences, if_exists: true
+
     create_table :evidences do |t|
       t.references :activity, null: false, foreign_key: true
       t.references :promise, null: false, foreign_key: true
