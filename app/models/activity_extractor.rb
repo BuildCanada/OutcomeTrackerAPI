@@ -20,19 +20,11 @@ class ActivityExtractor < Chat
     3. Assess whether the activity could have a positive, negative, or neutral impact on the progress of the related promise(s).
 
     When analyzing the impact:
-    - Consider direct and indirect effects
+    - Consider direct and indirect effects. If the promise is specific, do not consider indirect effects.
     - Think about short-term and long-term consequences
     - Take into account the scale and scope of the activity
 
-    Present your findings in the following format:
-
-    <extracted_activities>
-    <activity>
-    <description>[Describe the activity]</description>
-    <related_promise>[List the related government promise(s)]</related_promise>
-    <potential_impact>[Explain the potential impact on the promise(s), whether positive, negative, or neutral, and why]</potential_impact>
-    </activity>
-    </extracted_activities>
+    Present your findings as JSON.
 
     If no relevant activities are found in the political artifact, state this clearly in your response.
 
