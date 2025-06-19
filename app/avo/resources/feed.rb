@@ -15,6 +15,6 @@ class Avo::Resources::Feed < Avo::BaseResource
     field :raw, as: :code
     field :government, as: :belongs_to
 
-    field entries, as: :has_many
+    field :entries, as: :has_many
   end
 end
