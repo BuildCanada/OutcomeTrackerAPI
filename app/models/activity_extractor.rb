@@ -28,6 +28,8 @@ class ActivityExtractor < Chat
 
     If no relevant activities are found in the political artifact, state this clearly in your response.
 
+    Do not mention the promise_id in your impact_reasoning.
+    
     Try to minimize the number of activities listed, they should be combined if they are similar enough to avoid redundancy.
 
     Remember to focus only on activities that could potentially impact the government's progress on their promises. Do not include unrelated information or speculate beyond what is reasonably implied by the artifact.

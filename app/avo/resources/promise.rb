@@ -10,19 +10,24 @@ class Avo::Resources::Promise < Avo::BaseResource
 
   def fields
     field :id, as: :id
-    field :promise_id, as: :text
+    field :concise_title, as: :text
+    field "Has evidence", as: :boolean do
+      record.evidences.present?
+    rescue
+      false
+    end
+    # field :promise_id, as: :text
     # field :action_type_classified_at, as: :date_time
     # field :action_type_confidence, as: :number
     # field :action_type_rationale, as: :textarea
     field :background_and_context, as: :textarea
-    field :bc_priority_score, as: :number
+    field :bc_priority_score, as: :number, sortable: true
     field :bc_promise_direction, as: :text
     field :bc_promise_rank, as: :text
-    field :bc_promise_rank_rationale, as: :textarea
-    field :bc_ranked_at, as: :date_time
+    # field :bc_promise_rank_rationale, as: :textarea
+    # field :bc_ranked_at, as: :date_time
     field :candidate_or_government, as: :text
     # field :category, as: :text
-    field :concise_title, as: :text
     field :date_issued, as: :date
     field :description, as: :textarea
     # field :evidence_count, as: :number
@@ -75,6 +80,6 @@ class Avo::Resources::Promise < Avo::BaseResource
     # field :policy_areas, as: :code
     # field :target_groups, as: :code
 
-    field :entries, as: :has_many
+    field :evidences, as: :has_many
   end
 end
