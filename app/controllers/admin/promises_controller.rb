@@ -47,20 +47,12 @@ module Admin
       end
     end
 
-    private
-
-    def promise_params
-      params.permit(*Promise.client_fields - [:id])
-    end
-
     def destroy
       promise = Promise.find(params[:id])
       puts "🗑️ Soft deleting promise #{promise.id}"
 
       if promise.update(
         status: 'deleted',
-        deleted_at: Time.current,
-        deleted_by_admin: 'admin' # You can replace this with current_user.id when auth is implemented
       )
         puts "✅ Soft delete successful"
         render json: { success: true, message: "Promise soft deleted", id: promise.id }
@@ -69,5 +61,12 @@ module Admin
         render json: { success: false, errors: promise.errors.full_messages }, status: :unprocessable_entity
       end
     end
+
+    private
+
+    def promise_params
+      params.permit(*Promise.client_fields - [:id])
+    end
+
   end
 end
