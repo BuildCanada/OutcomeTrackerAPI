@@ -7,15 +7,14 @@ class Avo::Resources::Evidence < Avo::BaseResource
 
   def fields
     field :id, as: :id
-    field :review, as: :boolean, name: "Reviewed"
+    field :review, as: :boolean, name: "Reviewed", sortable: true
 
-
+    field :impact_magnitude, as: :number, sortable: true
+    field :impact, as: :text
     field :impact_reason, as: :text
 
     field :activity, as: :belongs_to
     field :promise, as: :belongs_to
-    field :impact, as: :text
-    field :impact_magnitude, as: :number
     field :linked_at, as: :date_time, sortable: true
     field :linked_by, as: :belongs_to
     field :link_type, as: :text

@@ -16,6 +16,12 @@ class Avo::Resources::Promise < Avo::BaseResource
     rescue
       false
     end
+
+    field "Has unreviewed evidence", as: :boolean do
+      record.evidences.where(reviewed: [ nil, false ]).present?
+    rescue
+      false
+    end
     # field :promise_id, as: :text
     # field :action_type_classified_at, as: :date_time
     # field :action_type_confidence, as: :number
