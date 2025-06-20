@@ -28,20 +28,36 @@ module Admin
                             .limit(params[:limit] || 25)
                             .offset(params[:offset] || 0)
 
-      render json: {
-        data: promises.as_json(only: [
-          :id,
-          :text,
-          :source_type,
-          :bc_promise_rank,
-          :bc_promise_direction,
-          :responsible_department_lead,
-          :progress_score,
-          :status,
-          :evidence_ids
-        ]),
-        meta: { total: total }
-      }
+        render json: {
+          data: promises.as_json(only: [
+            :id,
+            :text,
+            :source_type,
+            :bc_promise_rank,
+            :bc_promise_direction,
+            :bc_promise_rank_rationale,
+            :parliament_session_id,
+            :responsible_department_lead,
+            :reporting_lead_title,
+            :category,
+            :date_issued,
+            :progress_score,
+            :progress_summary,
+            :concise_title,
+            :description,
+            :what_it_means_for_canadians,
+            :intended_impact_and_objectives,
+            :background_and_context,
+            :region_code,
+            :party_code,
+            :status,
+            :deleted_at,
+            :deleted_by_admin,
+            :department,
+            :evidence_ids
+          ]),
+          meta: { total: total }
+        }
       end
     end
   end
