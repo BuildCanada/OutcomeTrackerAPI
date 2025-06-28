@@ -48,7 +48,7 @@ MAPPING = {
 
 Promise.includes(:department_promises).find_each(batch_size: 100) do |promise|
   next if promise.relevant_departments.blank?
-  
+
   relevant_departments = promise.relevant_departments
 
     relevant_departments&.each do |department|

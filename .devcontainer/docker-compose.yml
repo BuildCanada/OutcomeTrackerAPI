@@ -1,0 +1,37 @@
+services:
+  app:
+    build:
+      context: ..
+      dockerfile: .devcontainer/Dockerfile
+    volumes:
+      - ../..:/workspaces:cached
+    command: sleep infinity
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@db:5432/outcome_tracker_api_development
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: outcome_tracker_api_development
+    depends_on:
+      - db
+    networks:
+      - rails-network
+
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: outcome_tracker_api_development
+    networks:
+      - rails-network
+    ports:
+      - "5432:5432"
+
+volumes:
+  postgres-data:
+
+networks:
+  rails-network:
