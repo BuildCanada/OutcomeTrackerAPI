@@ -27,7 +27,7 @@ gem "bootsnap", require: false
 gem "rack-cors"
 
 # Search
-gem "ransack", "~> 4.2.1"
+gem "ransack", "~> 4.3.0"
 
 
 
