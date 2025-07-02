@@ -17,7 +17,6 @@ Rails.application.routes.draw do
   resources :departments, only: [ :index, :show ]
   resources :promises, only: [ :index, :show ]
   resources :evidences, only: [ :index, :show ]
-  resources :builders, only: [ :index, :show ]
 
   namespace :admin do
     resources :promises, only: [ :index, :show, :update, :destroy ]
