@@ -24,14 +24,29 @@ class Promise < ApplicationRecord
     dp.save!
   end
 
+
+
   def format_for_llm
     {
       promise_id: promise_id,
       title: concise_title,
       description: description,
-      text: text
+      text: text,
+      responsible_department_lead: responsible_department_lead,
+      intended_impact_and_objectives: intended_impact_and_objectives,
+      background_and_context: background_and_context
     }
   end
+
+  def update_progress!(inline: false)
+    unless inline
+      return PromiseProgressUpdaterJob.perform_later(self)
+    end
+    extractor = PromiseProgressUpdater.create!(record: self)
+    extractor.update_promise_progress!
+    self.save!
+  end
+
 
   def self.client_fields
     [
