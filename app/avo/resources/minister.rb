@@ -1,10 +1,10 @@
 class Avo::Resources::Minister < Avo::BaseResource
   # self.includes = []
   # self.attachments = []
-  # self.search = {
-  #   query: -> { query.ransack(id_eq: params[:q], m: "or").result(distinct: false) }
-  # }
-  #
+  self.search = {
+    query: -> { query.ransack(first_name_cont: params[:q], last_name_cont: params[:q], title_cont: params[:q], m: "or").result(distinct: false) }
+  }
+
   self.title = :compound_name
 
   def fields

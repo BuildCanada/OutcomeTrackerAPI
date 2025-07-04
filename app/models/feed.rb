@@ -3,6 +3,10 @@ class Feed < ApplicationRecord
 
   has_many :entries, dependent: :destroy
 
+  def self.ransackable_attributes(auth_object = nil)
+    [ "title" ]
+  end
+
   def refresh!
     # Implement the logic to refresh the feed data
     response = HTTP.get(url)

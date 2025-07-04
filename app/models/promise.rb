@@ -8,6 +8,10 @@ class Promise < ApplicationRecord
   has_one :lead_department_promise, -> { where(is_lead: true) }, class_name: "DepartmentPromise"
   has_one :lead_department, through: :lead_department_promise, source: :department
 
+  def self.ransackable_attributes(auth_object = nil)
+    [ "concise_title" ]
+  end
+
   def set_last_evidence_date!
     self.last_evidence_date = evidences.where.not(impact: "neutral").map(&:activity).maximum(:published_at)
     self.save!(touch: false)

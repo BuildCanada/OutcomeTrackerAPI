@@ -1,9 +1,9 @@
 class Avo::Resources::Promise < Avo::BaseResource
   # self.includes = []
   # self.attachments = []
-  # self.search = {
-  #   query: -> { query.ransack(id_eq: params[:q], m: "or").result(distinct: false) }
-  # }
+  self.search = {
+    query: -> { query.ransack(concise_title_cont: params[:q], m: "or").result(distinct: false) }
+  }
 
   self.title = :concise_title
 
