@@ -16,6 +16,10 @@ Rails.application.configure do
       class: "FeedRefresherJob", # name of the job class as a String; must reference an Active Job job class
       description: "Refreshed feeds and creates new entries", # optional description that appears in Dashboard,
       enabled_by_default: -> { Rails.env.production? } # Only enable in production, otherwise can be enabled manually through Dashboard
+    },
+    statcan_sync: {
+      cron: "0 * * * *", # Every hour
+      class: "StatcanCronJob"
     }
   }
 

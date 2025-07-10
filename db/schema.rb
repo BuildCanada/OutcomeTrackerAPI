@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_06_30_162816) do
+ActiveRecord::Schema[8.0].define(version: 2025_07_07_155320) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -158,6 +158,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_30_162816) do
     t.string "language"
     t.string "url"
     t.jsonb "raw"
+    t.string "source_url"
     t.bigint "government_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
@@ -363,6 +364,19 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_30_162816) do
     t.jsonb "target_groups", default: {}
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+  end
+
+  create_table "statcan_datasets", force: :cascade do |t|
+    t.text "statcan_url", null: false
+    t.string "name", null: false
+    t.string "sync_schedule", null: false
+    t.jsonb "current_data"
+    t.datetime "last_synced_at", precision: nil
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["last_synced_at"], name: "index_statcan_datasets_on_last_synced_at"
+    t.index ["name"], name: "index_statcan_datasets_on_name", unique: true
+    t.index ["statcan_url"], name: "index_statcan_datasets_on_statcan_url", unique: true
   end
 
   create_table "tool_calls", force: :cascade do |t|

@@ -1,0 +1,15 @@
+unsynced:
+  statcan_url: "https://statcan.gc.ca/123.csv"
+  name: "test-dataset-unsynced"
+  sync_schedule: "0 0 * * *"
+  current_data: null
+  last_synced_at: null
+
+synced:
+  statcan_url: "https://statcan.gc.ca/456.csv"
+  name: "test-dataset-synced"
+  sync_schedule: "0 0 * * *"
+  current_data: 
+    - year: 2020
+      population: 38000000
+  last_synced_at: "2024-01-15 10:30:00"

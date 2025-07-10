@@ -43,6 +43,8 @@ group :development, :test do
 end
 gem "avo", ">= 3.2"
 
+gem "csv", "~> 3.3"
+
 gem "devise", "~> 4.9"
 
 gem "importmap-rails", "~> 2.1"
@@ -55,6 +57,8 @@ gem "ruby_llm", "~> 1.3", github: "xrendan/ruby_llm", branch: "structured-output
 gem "dotenv", groups: [ :development, :test ]
 
 gem "feedjira", "~> 3.2"
+
+gem "fugit", "~> 1.11"
 
 gem "http", "~> 5.3"
 

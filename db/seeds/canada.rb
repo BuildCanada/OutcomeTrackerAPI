@@ -637,4 +637,6 @@ end
 
 puts "Seeding Evidences..."
 
+require_relative 'statcan_datasets'
+
 puts "Done seeding"
