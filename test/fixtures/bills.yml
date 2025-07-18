@@ -1,0 +1,61 @@
+one:
+  bill_id: 13539458
+  bill_number_formatted: "S-1"
+  parliament_number: 45
+  short_title: ""
+  long_title: "An Act relating to railways"
+  latest_activity: "Introduction and first reading on May 27, 2025 (Senate)"
+  passed_house_first_reading_at: 
+  passed_house_second_reading_at: 
+  passed_house_third_reading_at: 
+  passed_senate_first_reading_at: "2025-05-26T20:00:00-04:00"
+  passed_senate_second_reading_at: 
+  passed_senate_third_reading_at: 
+  received_royal_assent_at: 
+  latest_activity_at: "2025-05-26T20:00:00-04:00"
+  data: 
+    SearchScore: 1.0
+    BillId: 13539458
+    BillNumberPrefix: null
+    BillNumber: 0
+    BillNumberSuffix: null
+    BillNumberFormatted: "S-1"
+    LongTitleEn: "An Act relating to railways"
+    LongTitleFr: "Loi concernant les chemins de fer"
+    ShortTitleEn: ""
+    ShortTitleFr: ""
+    LatestBillMilestoneId: 60043
+    LatestCompletedMajorStageEn: "First reading"
+    LatestCompletedMajorStageFr: "Première lecture"
+    LatestCompletedMajorStageChamberId: 2
+    DidReinstateFromPreviousSession: false
+    PassedHouseFirstReadingDateTime: null
+    PassedHouseSecondReadingDateTime: null
+    PassedHouseThirdReadingDateTime: null
+    PassedSenateFirstReadingDateTime: "2025-05-26T20:00:00-04:00"
+    PassedSenateSecondReadingDateTime: null
+    PassedSenateThirdReadingDateTime: null
+    ReceivedRoyalAssentDateTime: null
+    ParlSessionCode: "45-1"
+    ParlSessionEn: "45th Parliament, 1st session~May 26, 2025 to present"
+    ParlSessionFr: "45<sup>e</sup> législature, 1<sup>re</sup> session~26 mai 2025 à aujourd'hui"
+    ParliamentNumber: 45
+    SessionNumber: 1
+    OriginatingChamberId: 2
+    BillTypeId: 0
+    BillTypeEn: "Senate Public Bill"
+    BillTypeFr: "Projet de loi d'intérêt public du Sénat"
+    CurrentStatusId: 0
+    CurrentStatusEn: "Introduced as pro forma bill"
+    CurrentStatusFr: "Présenté en tant que projet de loi pro forma"
+    MinistryId: 0
+    SponsorId: 0
+    SponsorEn: "Sen. Judith Seidman"
+    SponsorFr: "Sén. Judith Seidman"
+    PoliticalAffiliationId: 0
+    IsFromCurrentSession: true
+    Highlight: null
+    LatestBillTextTypeId: 0
+    LatestActivityEn: "Introduction and first reading on May 27, 2025 (Senate)"
+    LatestActivityFr: "Dépôt et première lecture le 27 mai 2025 (Sénat)"
+    LatestActivityDateTime: "2025-05-26T20:00:00-04:00"

@@ -17,9 +17,17 @@ Rails.application.configure do
       description: "Refreshed feeds and creates new entries", # optional description that appears in Dashboard,
       enabled_by_default: -> { Rails.env.production? } # Only enable in production, otherwise can be enabled manually through Dashboard
     },
+    bills_sync: {
+      cron: "every 3 hours",
+      class: "BillsCronJob",
+      description: "Syncs summary data for all bills within current parliament",
+      enabled_by_default: -> { Rails.env.production? }
+    },
     statcan_sync: {
       cron: "0 * * * *", # Every hour
-      class: "StatcanCronJob"
+      class: "StatcanCronJob",
+      description: "Enqueues jobs to sync stale Statcan datasets",
+      enabled_by_default: -> { Rails.env.production? }
     }
   }
 

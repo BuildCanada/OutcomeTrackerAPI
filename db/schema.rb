@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_07_07_155320) do
+ActiveRecord::Schema[8.0].define(version: 2025_07_17_190044) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -54,6 +54,30 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_07_155320) do
     t.datetime "updated_at", null: false
     t.index ["entry_id"], name: "index_activities_on_entry_id"
     t.index ["government_id"], name: "index_activities_on_government_id"
+  end
+
+  create_table "bills", force: :cascade do |t|
+    t.integer "bill_id", null: false
+    t.text "bill_number_formatted", null: false
+    t.integer "parliament_number", null: false
+    t.text "short_title"
+    t.text "long_title"
+    t.text "latest_activity"
+    t.jsonb "data", null: false
+    t.timestamptz "passed_house_first_reading_at"
+    t.timestamptz "passed_house_second_reading_at"
+    t.timestamptz "passed_house_third_reading_at"
+    t.timestamptz "passed_senate_first_reading_at"
+    t.timestamptz "passed_senate_second_reading_at"
+    t.timestamptz "passed_senate_third_reading_at"
+    t.timestamptz "received_royal_assent_at"
+    t.timestamptz "latest_activity_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["bill_id"], name: "index_bills_on_bill_id", unique: true
+    t.index ["latest_activity_at"], name: "index_bills_on_latest_activity_at"
+    t.index ["parliament_number", "bill_number_formatted"], name: "index_bills_on_parliament_number_and_bill_number_formatted", unique: true
+    t.index ["parliament_number"], name: "index_bills_on_parliament_number"
   end
 
   create_table "canadian_builders", force: :cascade do |t|

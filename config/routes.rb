@@ -11,6 +11,7 @@ Rails.application.routes.draw do
 
   devise_for :users
   resources :activities, only: [ :index, :show ]
+  resources :bills, only: [ :index, :show ]
   resources :feeds, only: [ :index, :show ]
   resources :entries, only: [ :index, :show ]
   resources :ministers, only: [ :index, :show ]
