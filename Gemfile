@@ -47,7 +47,7 @@ gem "csv", "~> 3.3"
 
 gem "devise", "~> 4.9"
 
-gem "importmap-rails", "~> 2.1"
+gem "importmap-rails", "~> 2.2"
 
 gem "propshaft", "~> 1.2"
 
