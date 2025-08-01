@@ -68,5 +68,5 @@ gem "structify", "~> 0.3.4"
 
 gem "nokogiri", "~> 1.18"
 
-gem "marksmith", "~> 0.4.5"
+gem "marksmith", "~> 0.4.6"
 gem "commonmarker", "~> 2.3"
