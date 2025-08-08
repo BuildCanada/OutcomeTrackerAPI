@@ -230,7 +230,7 @@ GEM
       net-pop
       net-smtp
     marcel (1.0.4)
-    marksmith (0.4.5)
+    marksmith (0.4.7)
       activesupport
     meta-tags (2.22.1)
       actionpack (>= 6.0.0, < 8.1)
@@ -439,7 +439,7 @@ DEPENDENCIES
   iconv (~> 1.1)
   importmap-rails (~> 2.1)
   jbuilder
-  marksmith (~> 0.4.5)
+  marksmith (~> 0.4.7)
   nokogiri (~> 1.18)
   pg (~> 1.1)
   propshaft (~> 1.2)
