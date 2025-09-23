@@ -7,7 +7,7 @@ gem "pg", "~> 1.1"
 # Use the Puma web server [https://github.com/puma/puma]
 gem "puma", ">= 5.0"
 # Use GoodJob for Active Job queue adapter
-gem "good_job", "~> 4.11"
+gem "good_job", "~> 4.12"
 # Build JSON APIs with ease [https://github.com/rails/jbuilder]
 gem "jbuilder"
 
