@@ -72,3 +72,9 @@ gem "marksmith", "~> 0.4.5"
 gem "commonmarker", "~> 2.3"
 
 gem "appsignal"
+
+## updates for Statcan dataset sync and export to data lake
+
+gem "red-arrow"
+
+gem "red-parquet"
