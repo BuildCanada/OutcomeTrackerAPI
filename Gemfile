@@ -49,7 +49,7 @@ gem "devise", "~> 4.9"
 
 gem "importmap-rails", "~> 2.1"
 
-gem "propshaft", "~> 1.2"
+gem "propshaft", "~> 1.3"
 
 gem "ruby_llm", "~> 1.3", github: "xrendan/ruby_llm", branch: "structured-output"
 # gem "ruby_llm", "~> 1.3", path: "../ruby_llm"
