@@ -44,47 +44,30 @@ namespace :db do
     
     puts "Found artifact: #{latest_artifact['name']} (created: #{latest_artifact['created_at']})"
 
-    # Download the artifact - for public repos, we need to use the API with no auth
-    download_uri = URI("https://api.github.com/repos/#{repo}/actions/artifacts/#{latest_artifact['id']}/zip")
-    
-    # For public repositories, the artifact download will redirect
-    # We need to follow the redirect to get the actual download URL
-    http = Net::HTTP.new(download_uri.host, download_uri.port)
-    http.use_ssl = true
-    
-    request = Net::HTTP::Get.new(download_uri)
-    request['Accept'] = 'application/vnd.github+json'
-    request['X-GitHub-Api-Version'] = '2022-11-28'
-    
-    response = http.request(request)
-    
-    # Follow redirect
-    if response.code == '302'
-      download_url = response['Location']
-      uri = URI(download_url)
-      
-      http = Net::HTTP.new(uri.host, uri.port)
-      http.use_ssl = true
-      
-      request = Net::HTTP::Get.new(uri)
-      response = http.request(request)
-    end
-    
-    if response.code != '200'
-      puts "Error downloading artifact: #{response.code}"
-      puts "This might be because the artifact has expired or the repository is private."
+    # Check if gh CLI is installed
+    unless system('which gh > /dev/null 2>&1')
+      puts "Error: GitHub CLI (gh) is not installed."
+      puts "Please install it from: https://cli.github.com/"
       exit 1
     end
 
-    # Save the artifact
+    # Create temp directory
     temp_dir = Rails.root.join('tmp', 'database_restore')
     FileUtils.mkdir_p(temp_dir)
     
-    zip_file = temp_dir.join('artifact.zip')
-    File.open(zip_file, 'wb') do |file|
-      file.write(response.body)
+    # Download the artifact using gh CLI
+    puts "Downloading artifact using GitHub CLI..."
+    download_cmd = "gh api repos/#{repo}/actions/artifacts/#{latest_artifact['id']}/zip > #{temp_dir}/artifact.zip"
+    
+    success = system(download_cmd)
+    
+    unless success
+      puts "Error downloading artifact"
+      puts "Make sure you're authenticated with: gh auth login"
+      exit 1
     end
-
+    
+    zip_file = temp_dir.join('artifact.zip')
     puts "Downloaded artifact to #{zip_file}"
 
     # Extract the zip file

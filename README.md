@@ -68,7 +68,10 @@ For new developers joining the project, we provide a streamlined onboarding proc
 
 #### Quick Start with Production Data
 
-1. **Request Access**: Contact the team to ensure you have access to the GitHub repository
+1. **Prerequisites**:
+   - Install the GitHub CLI: https://cli.github.com/
+   - Authenticate with: `gh auth login`
+   - Ensure you have access to the GitHub repository
 
 2. **Restore from Latest Database Dump**:
    ```bash
@@ -101,6 +104,6 @@ rake db:restore[/path/to/dump.dump]
 - Dumps use PostgreSQL's custom archive format for efficient storage and restore
 
 #### Notes
-- No GitHub token required - artifacts are public
+- GitHub CLI (`gh`) is required for downloading artifacts due to GitHub API limitations
 - Ensure your local PostgreSQL version is compatible with the production version (currently 17.x)
 - The restore process will prompt for confirmation before proceeding
