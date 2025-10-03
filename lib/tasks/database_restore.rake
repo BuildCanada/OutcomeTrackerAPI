@@ -7,13 +7,7 @@ namespace :db do
     require 'open3'
 
     # GitHub API configuration
-    github_token = ENV['GITHUB_TOKEN'] || ENV['GITHUB_PAT']
     repo = ENV['GITHUB_REPOSITORY'] || 'BuildCanada/OutcomeTrackerAPI'
-    
-    if github_token.nil? || github_token.empty?
-      puts "Error: GITHUB_TOKEN or GITHUB_PAT environment variable is required"
-      exit 1
-    end
 
     puts "Fetching latest database dump artifact..."
 
@@ -26,7 +20,7 @@ namespace :db do
     
     request = Net::HTTP::Get.new(uri)
     request['Accept'] = 'application/vnd.github+json'
-    request['Authorization'] = "Bearer #{github_token}"
+    # No authorization needed for public repositories
     request['X-GitHub-Api-Version'] = '2022-11-28'
     
     response = http.request(request)
@@ -50,18 +44,35 @@ namespace :db do
     
     puts "Found artifact: #{latest_artifact['name']} (created: #{latest_artifact['created_at']})"
 
-    # Download the artifact
+    # Download the artifact - for public repos, we need to use the API with no auth
     download_uri = URI("https://api.github.com/repos/#{repo}/actions/artifacts/#{latest_artifact['id']}/zip")
+    
+    # For public repositories, the artifact download will redirect
+    # We need to follow the redirect to get the actual download URL
+    http = Net::HTTP.new(download_uri.host, download_uri.port)
+    http.use_ssl = true
     
     request = Net::HTTP::Get.new(download_uri)
     request['Accept'] = 'application/vnd.github+json'
-    request['Authorization'] = "Bearer #{github_token}"
     request['X-GitHub-Api-Version'] = '2022-11-28'
     
     response = http.request(request)
     
+    # Follow redirect
+    if response.code == '302'
+      download_url = response['Location']
+      uri = URI(download_url)
+      
+      http = Net::HTTP.new(uri.host, uri.port)
+      http.use_ssl = true
+      
+      request = Net::HTTP::Get.new(uri)
+      response = http.request(request)
+    end
+    
     if response.code != '200'
-      puts "Error downloading artifact: #{response.code} #{response.body}"
+      puts "Error downloading artifact: #{response.code}"
+      puts "This might be because the artifact has expired or the repository is private."
       exit 1
     end
 
@@ -172,13 +183,7 @@ namespace :db do
     require 'json'
 
     # GitHub API configuration
-    github_token = ENV['GITHUB_TOKEN'] || ENV['GITHUB_PAT']
     repo = ENV['GITHUB_REPOSITORY'] || 'BuildCanada/OutcomeTrackerAPI'
-    
-    if github_token.nil? || github_token.empty?
-      puts "Error: GITHUB_TOKEN or GITHUB_PAT environment variable is required"
-      exit 1
-    end
 
     # Get list of artifacts
     uri = URI("https://api.github.com/repos/#{repo}/actions/artifacts")
@@ -189,7 +194,7 @@ namespace :db do
     
     request = Net::HTTP::Get.new(uri)
     request['Accept'] = 'application/vnd.github+json'
-    request['Authorization'] = "Bearer #{github_token}"
+    # No authorization needed for public repositories
     request['X-GitHub-Api-Version'] = '2022-11-28'
     
     response = http.request(request)
