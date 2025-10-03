@@ -38,12 +38,12 @@
   These are extracted using an LLM from the Entry's raw data. Each entry might have multiple activities.
 
 `Evidence`:
-  Evidence links an Activity to a Promise. They are linked using an LLM. 
+  Evidence links an Activity to a Promise. They are linked using an LLM.
 
 
 
 ### 🛠 Setup
-Ensure you have Ruby and PostgreSQL installed
+Ensure you have Ruby, PostgreSQL and the Github CLI installed
 
 ```bash
 # Install dependencies
@@ -55,8 +55,7 @@ sudo service postgresql start
 
 # Setup database
 rails db:create
-rails db:migrate
-rails db:seed
+rake db:fetch_and_restore
 
 # Run the server
 rails s
@@ -71,13 +70,12 @@ For new developers joining the project, we provide a streamlined onboarding proc
 1. **Prerequisites**:
    - Install the GitHub CLI: https://cli.github.com/
    - Authenticate with: `gh auth login`
-   - Ensure you have access to the GitHub repository
 
 2. **Restore from Latest Database Dump**:
    ```bash
    # List available database dumps
    rake db:list_dumps
-   
+
    # Fetch and restore the latest production database dump
    # This will download the most recent weekly backup and restore it locally
    rake db:fetch_and_restore
@@ -90,20 +88,8 @@ For new developers joining the project, we provide a streamlined onboarding proc
 
 4. **Post-Restore**: After restoring, the rake task automatically runs any pending migrations
 
-#### Manual Database Restore
-
-If you have a specific dump file:
-```bash
-rake db:restore[/path/to/dump.dump]
-```
-
 #### Database Dumps Schedule
 
 - Production database is automatically dumped weekly (every Monday at 2 AM UTC)
 - Dumps are stored as GitHub Actions artifacts for 30 days
 - Dumps use PostgreSQL's custom archive format for efficient storage and restore
-
-#### Notes
-- GitHub CLI (`gh`) is required for downloading artifacts due to GitHub API limitations
-- Ensure your local PostgreSQL version is compatible with the production version (currently 17.x)
-- The restore process will prompt for confirmation before proceeding
