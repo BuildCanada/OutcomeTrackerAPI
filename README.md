@@ -43,7 +43,7 @@
 
 
 ### 🛠 Setup
-Ensure you have Ruby and PostgresQL installed
+Ensure you have Ruby and PostgreSQL installed
 
 ```bash
 # Install dependencies
@@ -61,3 +61,46 @@ rails db:seed
 # Run the server
 rails s
 ```
+
+### 🚀 Developer Onboarding
+
+For new developers joining the project, we provide a streamlined onboarding process using production database dumps:
+
+#### Quick Start with Production Data
+
+1. **Request Access**: Contact the team to ensure you have access to the GitHub repository
+
+2. **Restore from Latest Database Dump**:
+   ```bash
+   # List available database dumps
+   rake db:list_dumps
+   
+   # Fetch and restore the latest production database dump
+   # This will download the most recent weekly backup and restore it locally
+   rake db:fetch_and_restore
+   ```
+
+3. **What's Included**: The database dump includes all production data except:
+   - User accounts (for privacy/security)
+   - Schema migrations metadata
+   - Internal Rails metadata
+
+4. **Post-Restore**: After restoring, the rake task automatically runs any pending migrations
+
+#### Manual Database Restore
+
+If you have a specific dump file:
+```bash
+rake db:restore[/path/to/dump.dump]
+```
+
+#### Database Dumps Schedule
+
+- Production database is automatically dumped weekly (every Monday at 2 AM UTC)
+- Dumps are stored as GitHub Actions artifacts for 30 days
+- Dumps use PostgreSQL's custom archive format for efficient storage and restore
+
+#### Notes
+- No GitHub token required - artifacts are public
+- Ensure your local PostgreSQL version is compatible with the production version (currently 17.x)
+- The restore process will prompt for confirmation before proceeding
