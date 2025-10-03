@@ -14,13 +14,33 @@ jobs:
       actions: write
 
     steps:
+      - name: Cache PostgreSQL client
+        id: cache-postgresql
+        uses: actions/cache@v3
+        with:
+          path: |
+            /usr/lib/postgresql/17
+            /usr/share/postgresql/17
+            /usr/bin/pg_dump
+            /usr/bin/pg_restore
+            /usr/bin/psql
+          key: ${{ runner.os }}-postgresql-client-17-${{ hashFiles('.github/workflows/database-dump.yml') }}
+
       - name: Set up PostgreSQL 17 client
+        if: steps.cache-postgresql.outputs.cache-hit != 'true'
         run: |
-          # Add PostgreSQL official APT repository
-          sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
-          wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
+          # Add PostgreSQL official APT repository using the new method
           sudo apt-get update
-          # Install PostgreSQL 17 client specifically
+          sudo apt-get install -y wget ca-certificates
+          
+          # Download and add the signing key
+          wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo tee /usr/share/keyrings/postgresql-archive-keyring.gpg >/dev/null
+          
+          # Add the repository with signed-by option
+          echo "deb [signed-by=/usr/share/keyrings/postgresql-archive-keyring.gpg] http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list
+          
+          # Update and install PostgreSQL 17 client
+          sudo apt-get update
           sudo apt-get install -y postgresql-client-17
 
       - name: Create dump directory
