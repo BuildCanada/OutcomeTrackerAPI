@@ -38,12 +38,12 @@
   These are extracted using an LLM from the Entry's raw data. Each entry might have multiple activities.
 
 `Evidence`:
-  Evidence links an Activity to a Promise. They are linked using an LLM. 
+  Evidence links an Activity to a Promise. They are linked using an LLM.
 
 
 
 ### 🛠 Setup
-Ensure you have Ruby and PostgresQL installed
+Ensure you have Ruby, PostgreSQL and the Github CLI installed
 
 ```bash
 # Install dependencies
@@ -55,9 +55,41 @@ sudo service postgresql start
 
 # Setup database
 rails db:create
-rails db:migrate
-rails db:seed
+rake db:fetch_and_restore
 
 # Run the server
 rails s
 ```
+
+### 🚀 Developer Onboarding
+
+For new developers joining the project, we provide a streamlined onboarding process using production database dumps:
+
+#### Quick Start with Production Data
+
+1. **Prerequisites**:
+   - Install the GitHub CLI: https://cli.github.com/
+   - Authenticate with: `gh auth login`
+
+2. **Restore from Latest Database Dump**:
+   ```bash
+   # List available database dumps
+   rake db:list_dumps
+
+   # Fetch and restore the latest production database dump
+   # This will download the most recent weekly backup and restore it locally
+   rake db:fetch_and_restore
+   ```
+
+3. **What's Included**: The database dump includes all production data except:
+   - User accounts (for privacy/security)
+   - Schema migrations metadata
+   - Internal Rails metadata
+
+4. **Post-Restore**: After restoring, the rake task automatically runs any pending migrations
+
+#### Database Dumps Schedule
+
+- Production database is automatically dumped weekly (every Monday at 2 AM UTC)
+- Dumps are stored as GitHub Actions artifacts for 30 days
+- Dumps use PostgreSQL's custom archive format for efficient storage and restore
