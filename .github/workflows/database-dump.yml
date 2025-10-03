@@ -52,60 +52,12 @@ jobs:
           echo "DUMP_FILE=${DUMP_FILE}.gz" >> $GITHUB_ENV
           echo "Dump created: ${DUMP_FILE}.gz"
 
-      - name: Upload dump as artifact using GitHub API
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          # Get the dump file name
-          DUMP_FILE_NAME=$(basename "$DUMP_FILE")
-          
-          # Create a unique artifact name with timestamp
-          ARTIFACT_NAME="database-dump-$(date +%Y%m%d-%H%M%S)"
-          
-          # Get workflow run ID
-          RUN_ID="${{ github.run_id }}"
-          
-          # Create artifact upload
-          echo "Creating artifact upload..."
-          UPLOAD_RESPONSE=$(curl -L \
-            -X POST \
-            -H "Accept: application/vnd.github+json" \
-            -H "Authorization: Bearer $GITHUB_TOKEN" \
-            -H "X-GitHub-Api-Version: 2022-11-28" \
-            "https://api.github.com/repos/${{ github.repository }}/actions/runs/${RUN_ID}/artifacts" \
-            -d "{\"name\":\"${ARTIFACT_NAME}\", \"retention_days\": 30}")
-          
-          # Extract upload URL and other details
-          UPLOAD_URL=$(echo "$UPLOAD_RESPONSE" | jq -r '.upload_url')
-          ARTIFACT_ID=$(echo "$UPLOAD_RESPONSE" | jq -r '.id')
-          
-          if [ "$UPLOAD_URL" = "null" ] || [ -z "$UPLOAD_URL" ]; then
-            echo "Failed to create artifact upload"
-            echo "Response: $UPLOAD_RESPONSE"
-            exit 1
-          fi
-          
-          # Upload the file
-          echo "Uploading dump file..."
-          curl -L \
-            -X PUT \
-            -H "Accept: application/vnd.github+json" \
-            -H "Authorization: Bearer $GITHUB_TOKEN" \
-            -H "X-GitHub-Api-Version: 2022-11-28" \
-            -H "Content-Type: application/gzip" \
-            --data-binary "@$DUMP_FILE" \
-            "$UPLOAD_URL"
-          
-          # Finalize the artifact
-          echo "Finalizing artifact..."
-          curl -L \
-            -X POST \
-            -H "Accept: application/vnd.github+json" \
-            -H "Authorization: Bearer $GITHUB_TOKEN" \
-            -H "X-GitHub-Api-Version: 2022-11-28" \
-            "https://api.github.com/repos/${{ github.repository }}/actions/artifacts/${ARTIFACT_ID}/finalize"
-          
-          echo "Database dump uploaded as artifact: ${ARTIFACT_NAME}"
+      - name: Upload dump as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: database-dump-${{ github.run_number }}-${{ github.run_attempt }}
+          path: ${{ env.DUMP_FILE }}
+          retention-days: 30
 
       - name: Clean up old artifacts
         env:
