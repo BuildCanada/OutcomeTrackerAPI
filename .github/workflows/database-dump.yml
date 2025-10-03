@@ -31,13 +31,19 @@ jobs:
         run: |
           # Add PostgreSQL official APT repository using the new method
           sudo apt-get update
-          sudo apt-get install -y wget ca-certificates
+          sudo apt-get install -y wget ca-certificates gnupg
           
-          # Download and add the signing key
-          wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo tee /usr/share/keyrings/postgresql-archive-keyring.gpg >/dev/null
+          # Create keyrings directory if it doesn't exist
+          sudo mkdir -p /usr/share/keyrings
+          
+          # Download and add the signing key with proper conversion
+          wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | \
+            gpg --dearmor | \
+            sudo tee /usr/share/keyrings/postgresql-archive-keyring.gpg > /dev/null
           
           # Add the repository with signed-by option
-          echo "deb [signed-by=/usr/share/keyrings/postgresql-archive-keyring.gpg] http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list
+          echo "deb [signed-by=/usr/share/keyrings/postgresql-archive-keyring.gpg] http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" | \
+            sudo tee /etc/apt/sources.list.d/pgdg.list
           
           # Update and install PostgreSQL 17 client
           sudo apt-get update
