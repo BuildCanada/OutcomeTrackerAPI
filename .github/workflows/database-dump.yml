@@ -16,7 +16,7 @@ jobs:
     steps:
       - name: Cache PostgreSQL client
         id: cache-postgresql
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             /usr/lib/postgresql/17
