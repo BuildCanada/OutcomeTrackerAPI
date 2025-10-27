@@ -78,7 +78,7 @@ jobs:
           echo "Dump created: ${DUMP_FILE}"
 
       - name: Upload dump as artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: database-dump-${{ github.run_number }}-${{ github.run_attempt }}
           path: ${{ env.DUMP_FILE }}
