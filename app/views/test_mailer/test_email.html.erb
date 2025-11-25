@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        line-height: 1.6;
+        color: #333;
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+      .header {
+        background-color: #007bff;
+        color: white;
+        padding: 20px;
+        text-align: center;
+        border-radius: 5px 5px 0 0;
+      }
+      .content {
+        background-color: #f8f9fa;
+        padding: 20px;
+        border: 1px solid #dee2e6;
+        border-radius: 0 0 5px 5px;
+      }
+      .info-table {
+        width: 100%;
+        margin-top: 20px;
+        border-collapse: collapse;
+      }
+      .info-table td {
+        padding: 10px;
+        border-bottom: 1px solid #dee2e6;
+      }
+      .info-table td:first-child {
+        font-weight: bold;
+        width: 40%;
+        background-color: #e9ecef;
+      }
+      .footer {
+        margin-top: 20px;
+        text-align: center;
+        font-size: 12px;
+        color: #666;
+      }
+      .success-message {
+        background-color: #d4edda;
+        color: #155724;
+        padding: 15px;
+        border-radius: 5px;
+        border: 1px solid #c3e6cb;
+        margin: 20px 0;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="header">
+      <h1>OutcomeTracker Test Email</h1>
+    </div>
+
+    <div class="content">
+      <div class="success-message">
+        <strong>Success!</strong> This is a test email from your OutcomeTracker application.
+        If you're receiving this email, it means your email configuration is working correctly.
+      </div>
+
+      <h2>Email Configuration Details</h2>
+      <table class="info-table">
+        <tr>
+          <td>Recipient</td>
+          <td><%= @recipient_email %></td>
+        </tr>
+        <tr>
+          <td>Sent From</td>
+          <td>noreply@apps.buildcanada.com</td>
+        </tr>
+        <tr>
+          <td>Environment</td>
+          <td><%= @environment.capitalize %></td>
+        </tr>
+        <tr>
+          <td>Timestamp</td>
+          <td><%= @test_time.strftime("%B %d, %Y at %I:%M %p %Z") %></td>
+        </tr>
+        <tr>
+          <td>Rails Version</td>
+          <td><%= Rails.version %></td>
+        </tr>
+      </table>
+
+      <h3>Next Steps</h3>
+      <ul>
+        <li>Verify that the email was delivered to your inbox (check spam folder if needed)</li>
+        <li>Check that all formatting appears correctly</li>
+        <li>Confirm the sender address is correct</li>
+        <li>Test with different email addresses if needed</li>
+      </ul>
+    </div>
+
+    <div class="footer">
+      <p>This is an automated test email from OutcomeTracker.</p>
+      <p>Please do not reply to this email.</p>
+    </div>
+  </body>
+</html>
