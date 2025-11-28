@@ -19,6 +19,9 @@ class StatcanDataset < ApplicationRecord
 
   def sync!
     data = StatcanFetcher.fetch(statcan_url)
+    
+    raise "StatcanDataset sync failed: No data received from StatCan API" if data.blank?
+
     update!(current_data: data, last_synced_at: Time.current)
   end
 

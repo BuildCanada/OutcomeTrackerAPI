@@ -65,7 +65,10 @@ Rails.application.configure do
     password: Rails.application.credentials.dig(:smtp, :password),
     address: Rails.application.credentials.dig(:smtp, :address),
     port: 587,
-    authentication: :plain
+    authentication: :plain,
+    enable_starttls_auto: true,
+    open_timeout: 5,
+    read_timeout: 5
   }
 
   # Enable locale fallbacks for I18n (makes lookups for any locale fall back to
