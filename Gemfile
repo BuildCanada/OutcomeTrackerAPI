@@ -69,6 +69,6 @@ gem "structify", "~> 0.3.4"
 gem "nokogiri", "~> 1.18"
 
 gem "marksmith", "~> 0.4.5"
-gem "commonmarker", "~> 2.3"
+gem "commonmarker", "~> 2.5"
 
 gem "appsignal"
