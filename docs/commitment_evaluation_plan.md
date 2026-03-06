@@ -318,21 +318,21 @@ All phases wrapped in `lib/tasks/commitment_backfill.rake` with individual tasks
 
 ### Priority 1 -- High Impact, Feasible Now
 
-| Source | URL/Feed | Commitment Types | Notes |
+| Source | URL/Feed | Commitment Types | Status |
 |---|---|---|---|
-| Orders in Council RSS | `orders-in-council.canada.ca` | procedural, institutional | Add as Feed |
-| Budget/Fiscal documents | `fin.gc.ca` press releases RSS | spending | Add as Feed |
-| PM press releases | `pm.gc.ca` RSS | all types | Add as Feed |
-| Departmental newsrooms | `canada.ca/en/news` per department | all types | Add as Feeds for key departments (DND, IRCC, ISC, ISED, etc.) |
+| Orders in Council RSS | `orders-in-council.canada.ca` | procedural, institutional | **Skipped** -- no RSS feed available |
+| Budget/Fiscal documents | `fin.gc.ca` press releases RSS | spending | **Done** -- already existed as Department of Finance feed |
+| PM press releases | `pm.gc.ca/en/rss.xml` | all types | **Done** |
+| Departmental newsrooms | `canada.ca/en/news` per department | all types | **Done** -- DND, IRCC, ISC, ISED, GAC, Health, Environment, ESDC, Transport, NRCan, TBS, CIRNAC |
 
 ### Priority 2 -- Medium Impact
 
-| Source | Commitment Types | Notes |
+| Source | Commitment Types | Status |
 |---|---|---|
 | Departmental Results Reports | outcome, spending | Annual publication per department; scraper or manual Source entry |
 | GAC Treaty database | diplomatic | `treaty-accord.gc.ca`; may need custom scraper |
 | House/Senate Committee feeds | legislative | `parl.ca` committee reports RSS |
-| Parliamentary Budget Officer | spending, outcome | `pbo-dpb.gc.ca` reports RSS |
+| Parliamentary Budget Officer | spending, outcome | **Done** -- `pbo-dpb.ca/en/feed.xml` |
 
 ### Priority 3 -- Nice to Have
 

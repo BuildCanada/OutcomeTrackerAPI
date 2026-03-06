@@ -533,6 +533,64 @@ feed_data = [
   {
     title: "Department of Finance News Statements",
     url: "https://api.io.canada.ca/io-server/gc/news/en/v2?dept=departmentfinance&type=newsreleases&sort=publishedDate&orderBy=desc&pick=100&format=atom&atomtitle=Canada%20News%20Centre%20-%20Department%20of%20Finance%20Canada%20-%20News%20Releases"
+  },
+  # Priority 1 data sources (Plan 7)
+  {
+    title: "Prime Minister Press Releases",
+    url: "https://pm.gc.ca/en/rss.xml"
+  },
+  {
+    title: "National Defence News Releases",
+    url: "https://api.io.canada.ca/io-server/gc/news/en/v2?dept=departmentnationaldefense&type=newsreleases&sort=publishedDate&orderBy=desc&pick=100&format=atom&atomtitle=Canada%20News%20Centre%20-%20National%20Defence"
+  },
+  {
+    title: "Immigration, Refugees and Citizenship Canada News Releases",
+    url: "https://api.io.canada.ca/io-server/gc/news/en/v2?dept=departmentofcitizenshipandimmigration&type=newsreleases&sort=publishedDate&orderBy=desc&pick=100&format=atom&atomtitle=Canada%20News%20Centre%20-%20IRCC"
+  },
+  {
+    title: "Indigenous Services Canada News Releases",
+    url: "https://api.io.canada.ca/io-server/gc/news/en/v2?dept=indigenousservicescanada&type=newsreleases&sort=publishedDate&orderBy=desc&pick=100&format=atom&atomtitle=Canada%20News%20Centre%20-%20Indigenous%20Services%20Canada"
+  },
+  {
+    title: "Innovation, Science and Economic Development News Releases",
+    url: "https://api.io.canada.ca/io-server/gc/news/en/v2?dept=departmentofindustry&type=newsreleases&sort=publishedDate&orderBy=desc&pick=100&format=atom&atomtitle=Canada%20News%20Centre%20-%20ISED"
+  },
+  {
+    title: "Global Affairs Canada News Releases",
+    url: "https://api.io.canada.ca/io-server/gc/news/en/v2?dept=departmentofforeignaffairstradeanddevelopment&type=newsreleases&sort=publishedDate&orderBy=desc&pick=100&format=atom&atomtitle=Canada%20News%20Centre%20-%20Global%20Affairs%20Canada"
+  },
+  {
+    title: "Health Canada News Releases",
+    url: "https://api.io.canada.ca/io-server/gc/news/en/v2?dept=departmentofhealth&type=newsreleases&sort=publishedDate&orderBy=desc&pick=100&format=atom&atomtitle=Canada%20News%20Centre%20-%20Health%20Canada"
+  },
+  {
+    title: "Environment and Climate Change Canada News Releases",
+    url: "https://api.io.canada.ca/io-server/gc/news/en/v2?dept=departmentoftheenvironment&type=newsreleases&sort=publishedDate&orderBy=desc&pick=100&format=atom&atomtitle=Canada%20News%20Centre%20-%20Environment%20and%20Climate%20Change%20Canada"
+  },
+  {
+    title: "Employment and Social Development Canada News Releases",
+    url: "https://api.io.canada.ca/io-server/gc/news/en/v2?dept=departmentofemploymentandsocialdevelopment&type=newsreleases&sort=publishedDate&orderBy=desc&pick=100&format=atom&atomtitle=Canada%20News%20Centre%20-%20ESDC"
+  },
+  {
+    title: "Transport Canada News Releases",
+    url: "https://api.io.canada.ca/io-server/gc/news/en/v2?dept=departmentoftransport&type=newsreleases&sort=publishedDate&orderBy=desc&pick=100&format=atom&atomtitle=Canada%20News%20Centre%20-%20Transport%20Canada"
+  },
+  {
+    title: "Natural Resources Canada News Releases",
+    url: "https://api.io.canada.ca/io-server/gc/news/en/v2?dept=naturalresourcescanada&type=newsreleases&sort=publishedDate&orderBy=desc&pick=100&format=atom&atomtitle=Canada%20News%20Centre%20-%20Natural%20Resources%20Canada"
+  },
+  {
+    title: "Treasury Board Secretariat News Releases",
+    url: "https://api.io.canada.ca/io-server/gc/news/en/v2?dept=treasuryboardsecretariat&type=newsreleases&sort=publishedDate&orderBy=desc&pick=100&format=atom&atomtitle=Canada%20News%20Centre%20-%20Treasury%20Board%20Secretariat"
+  },
+  {
+    title: "Crown-Indigenous Relations and Northern Affairs News Releases",
+    url: "https://api.io.canada.ca/io-server/gc/news/en/v2?dept=crownindigenousrelationsandnorthernaffairscanada&type=newsreleases&sort=publishedDate&orderBy=desc&pick=100&format=atom&atomtitle=Canada%20News%20Centre%20-%20CIRNAC"
+  },
+  # Priority 2 data sources (Plan 7)
+  {
+    title: "Parliamentary Budget Officer Reports",
+    url: "https://www.pbo-dpb.ca/en/feed.xml"
   }
 ]
 
