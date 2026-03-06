@@ -1,7 +1,7 @@
 namespace :feeds do
   desc "Add Priority 1 & 2 data source feeds (Plan 7)"
   task add_priority_sources: :environment do
-    government = Government.find_by!(slug: "canada")
+    government = Government.find_by!(slug: "federal")
 
     feeds = [
       {
