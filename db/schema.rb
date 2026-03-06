@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_03_05_000010) do
+ActiveRecord::Schema[8.0].define(version: 2026_03_06_000006) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -119,6 +119,24 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_05_000010) do
     t.index ["department_id"], name: "index_commitment_departments_on_department_id"
   end
 
+  create_table "commitment_events", force: :cascade do |t|
+    t.bigint "commitment_id", null: false
+    t.bigint "source_id"
+    t.integer "event_type", null: false
+    t.integer "action_type"
+    t.string "title", null: false
+    t.text "description"
+    t.date "occurred_at", null: false
+    t.jsonb "metadata", default: {}
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["action_type"], name: "index_commitment_events_on_action_type"
+    t.index ["commitment_id", "occurred_at"], name: "index_commitment_events_on_commitment_id_and_occurred_at"
+    t.index ["commitment_id"], name: "index_commitment_events_on_commitment_id"
+    t.index ["event_type"], name: "index_commitment_events_on_event_type"
+    t.index ["source_id"], name: "index_commitment_events_on_source_id"
+  end
+
   create_table "commitment_matches", force: :cascade do |t|
     t.bigint "commitment_id", null: false
     t.string "matchable_type", null: false
@@ -137,6 +155,22 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_05_000010) do
     t.index ["matchable_type", "matchable_id"], name: "idx_commitment_matches_matchable"
   end
 
+  create_table "commitment_revisions", force: :cascade do |t|
+    t.bigint "commitment_id", null: false
+    t.bigint "source_id"
+    t.string "title", null: false
+    t.text "description", null: false
+    t.text "original_text"
+    t.date "target_date"
+    t.text "change_summary"
+    t.date "revision_date", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["commitment_id", "revision_date"], name: "index_commitment_revisions_on_commitment_id_and_revision_date"
+    t.index ["commitment_id"], name: "index_commitment_revisions_on_commitment_id"
+    t.index ["source_id"], name: "index_commitment_revisions_on_source_id"
+  end
+
   create_table "commitment_sources", force: :cascade do |t|
     t.bigint "commitment_id", null: false
     t.text "excerpt"
@@ -147,6 +181,18 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_05_000010) do
     t.string "reference"
     t.index ["commitment_id"], name: "index_commitment_sources_on_commitment_id"
     t.index ["source_id"], name: "index_commitment_sources_on_source_id"
+  end
+
+  create_table "commitment_status_changes", force: :cascade do |t|
+    t.bigint "commitment_id", null: false
+    t.integer "previous_status", null: false
+    t.integer "new_status", null: false
+    t.datetime "changed_at", null: false
+    t.text "reason"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["commitment_id", "changed_at"], name: "idx_on_commitment_id_changed_at_15eb0a3265"
+    t.index ["commitment_id"], name: "index_commitment_status_changes_on_commitment_id"
   end
 
   create_table "commitments", force: :cascade do |t|
@@ -168,6 +214,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_05_000010) do
     t.bigint "superseded_by_id"
     t.bigint "policy_area_id"
     t.datetime "criteria_generated_at"
+    t.index "to_tsvector('english'::regconfig, (((COALESCE(title, ''::character varying))::text || ' '::text) || COALESCE(description, ''::text)))", name: "index_commitments_on_search", using: :gin
     t.index ["commitment_type"], name: "index_commitments_on_commitment_type"
     t.index ["government_id", "commitment_type"], name: "index_commitments_on_government_id_and_commitment_type"
     t.index ["government_id", "status"], name: "index_commitments_on_government_id_and_status"
@@ -275,6 +322,26 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_05_000010) do
     t.index ["linked_by_id"], name: "index_evidences_on_linked_by_id"
     t.index ["promise_id"], name: "index_evidences_on_promise_id"
     t.index ["reviewed_by_id"], name: "index_evidences_on_reviewed_by_id"
+  end
+
+  create_table "feed_items", force: :cascade do |t|
+    t.string "feedable_type", null: false
+    t.bigint "feedable_id", null: false
+    t.bigint "commitment_id", null: false
+    t.bigint "policy_area_id"
+    t.string "event_type", null: false
+    t.string "title", null: false
+    t.text "summary"
+    t.datetime "occurred_at", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["commitment_id", "occurred_at"], name: "index_feed_items_on_commitment_id_and_occurred_at"
+    t.index ["commitment_id"], name: "index_feed_items_on_commitment_id"
+    t.index ["event_type", "occurred_at"], name: "index_feed_items_on_event_type_and_occurred_at"
+    t.index ["feedable_type", "feedable_id"], name: "index_feed_items_on_feedable_type_and_feedable_id"
+    t.index ["occurred_at"], name: "index_feed_items_on_occurred_at"
+    t.index ["policy_area_id", "occurred_at"], name: "index_feed_items_on_policy_area_id_and_occurred_at"
+    t.index ["policy_area_id"], name: "index_feed_items_on_policy_area_id"
   end
 
   create_table "feeds", force: :cascade do |t|
@@ -428,6 +495,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_05_000010) do
     t.text "description"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "position", default: 0, null: false
     t.index ["name"], name: "index_policy_areas_on_name", unique: true
     t.index ["slug"], name: "index_policy_areas_on_slug", unique: true
   end
@@ -580,9 +648,14 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_05_000010) do
   add_foreign_key "canadian_builders", "governments"
   add_foreign_key "commitment_departments", "commitments"
   add_foreign_key "commitment_departments", "departments"
+  add_foreign_key "commitment_events", "commitments"
+  add_foreign_key "commitment_events", "sources"
   add_foreign_key "commitment_matches", "commitments"
+  add_foreign_key "commitment_revisions", "commitments"
+  add_foreign_key "commitment_revisions", "sources"
   add_foreign_key "commitment_sources", "commitments"
   add_foreign_key "commitment_sources", "sources"
+  add_foreign_key "commitment_status_changes", "commitments"
   add_foreign_key "commitments", "commitments", column: "parent_id"
   add_foreign_key "commitments", "commitments", column: "superseded_by_id"
   add_foreign_key "commitments", "governments"
@@ -600,6 +673,8 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_05_000010) do
   add_foreign_key "evidences", "promises"
   add_foreign_key "evidences", "users", column: "linked_by_id"
   add_foreign_key "evidences", "users", column: "reviewed_by_id"
+  add_foreign_key "feed_items", "commitments"
+  add_foreign_key "feed_items", "policy_areas"
   add_foreign_key "feeds", "governments"
   add_foreign_key "messages", "chats"
   add_foreign_key "messages", "tool_calls"
