@@ -1,0 +1,31 @@
+liberal_platform:
+  government: canada
+  source_type: 0
+  title: "Liberal Platform 2025"
+  url: "https://example.com/platform"
+  date: 2025-01-10
+
+budget_2025:
+  government: canada
+  source_type: 2
+  title: "Budget 2025"
+  date: 2025-04-01
+
+oic_example:
+  government: canada
+  source_type: 7
+  title: "Order in Council 2025-123"
+  date: 2025-02-01
+
+committee_report_example:
+  government: canada
+  source_type: 10
+  title: "Parliamentary Committee on Defence Report"
+  date: 2025-03-01
+
+custom_other_source:
+  government: canada
+  source_type: 6
+  source_type_other: "Internal memo"
+  title: "Defence Planning Memo"
+  date: 2025-01-15

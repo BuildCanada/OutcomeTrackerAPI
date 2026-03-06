@@ -10,6 +10,7 @@ class Entry < ApplicationRecord
   has_many :promises, through: :evidences
 
   has_many :children, class_name: "Entry", foreign_key: "parent_id"
+  has_many :commitment_matches, as: :matchable, dependent: :destroy
 
 
   after_commit :fetch_data!, on: [ :create ]
@@ -62,6 +63,7 @@ class Entry < ApplicationRecord
       create_subentries! if parent.nil? # only create subentries if this is the top-level entry
     else
       extract_activities!
+      filter_commitment_relevance!
     end
   rescue => e
     Rails.logger.error("Error fetching data for entry #{id}: #{e.message}")
@@ -92,6 +94,14 @@ class Entry < ApplicationRecord
     extractor.extract_activities!
     self.activities_extracted_at = Time.now
     self.save!
+  end
+
+  def filter_commitment_relevance!(inline: false)
+    unless inline
+      return CommitmentRelevanceFilterJob.perform_later(self)
+    end
+
+    CommitmentRelevanceFilterJob.perform_now(self)
   end
 
   def format_for_llm

@@ -9,6 +9,11 @@ class Department < ApplicationRecord
   has_many :lead_promises, -> { where(department_promises: { is_lead: true }) },
            through: :department_promises, source: :promise
 
+  has_many :commitment_departments, dependent: :destroy
+  has_many :commitments, through: :commitment_departments
+  has_many :lead_commitments, -> { where(commitment_departments: { is_lead: true }) },
+           through: :commitment_departments, source: :commitment
+
   def self.ransackable_attributes(auth_object = nil)
     [ "display_name", "official_name" ]
   end

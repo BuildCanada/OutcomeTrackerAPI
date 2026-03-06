@@ -16,6 +16,7 @@ Rails.application.routes.draw do
   resources :entries, only: [ :index, :show ]
   resources :ministers, only: [ :index, :show ]
   resources :departments, only: [ :index, :show ]
+  resources :commitments, only: [ :index, :show ]
   resources :promises, only: [ :index, :show ]
   resources :evidences, only: [ :index, :show ]
   resources :builders, only: [ :index, :show ]

@@ -1,0 +1,31 @@
+defence_completion:
+  commitment: defence_spending
+  category: 0
+  description: "Defence spending reaches 2% of GDP as reported by NATO"
+  verification_method: "Check NATO annual defence expenditure report"
+  status: 0
+  position: 0
+
+defence_success:
+  commitment: defence_spending
+  category: 1
+  description: "Annual budget allocations show year-over-year increase in defence spending"
+  status: 0
+  position: 0
+
+defence_progress:
+  commitment: defence_spending
+  category: 2
+  description: "Defence spending as % of GDP increases from baseline"
+  status: 1
+  evidence_notes: "2025 budget shows 1.4% to 1.6% increase"
+  assessed_at: 2025-06-01
+  position: 0
+
+defence_failure:
+  commitment: defence_spending
+  category: 3
+  description: "Defence budget is cut or funding redirected away from capability acquisition"
+  verification_method: "Federal Budget and Main Estimates defence allocations"
+  status: 0
+  position: 0

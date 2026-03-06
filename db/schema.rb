@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_07_17_190044) do
+ActiveRecord::Schema[8.0].define(version: 2026_03_05_000010) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -106,6 +106,107 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_17_190044) do
     t.datetime "updated_at", null: false
     t.jsonb "json_attributes"
     t.string "type"
+  end
+
+  create_table "commitment_departments", force: :cascade do |t|
+    t.bigint "commitment_id", null: false
+    t.bigint "department_id", null: false
+    t.boolean "is_lead", default: false, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["commitment_id", "department_id"], name: "idx_on_commitment_id_department_id_10b0163722", unique: true
+    t.index ["commitment_id"], name: "index_commitment_departments_on_commitment_id"
+    t.index ["department_id"], name: "index_commitment_departments_on_department_id"
+  end
+
+  create_table "commitment_matches", force: :cascade do |t|
+    t.bigint "commitment_id", null: false
+    t.string "matchable_type", null: false
+    t.bigint "matchable_id", null: false
+    t.float "relevance_score", null: false
+    t.text "relevance_reasoning"
+    t.datetime "matched_at", null: false
+    t.boolean "assessed", default: false, null: false
+    t.datetime "assessed_at"
+    t.jsonb "metadata", default: {}
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["commitment_id", "assessed"], name: "idx_commitment_matches_unassessed"
+    t.index ["commitment_id", "matchable_type", "matchable_id"], name: "idx_commitment_matches_unique", unique: true
+    t.index ["commitment_id"], name: "index_commitment_matches_on_commitment_id"
+    t.index ["matchable_type", "matchable_id"], name: "idx_commitment_matches_matchable"
+  end
+
+  create_table "commitment_sources", force: :cascade do |t|
+    t.bigint "commitment_id", null: false
+    t.text "excerpt"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "source_id", null: false
+    t.string "section"
+    t.string "reference"
+    t.index ["commitment_id"], name: "index_commitment_sources_on_commitment_id"
+    t.index ["source_id"], name: "index_commitment_sources_on_source_id"
+  end
+
+  create_table "commitments", force: :cascade do |t|
+    t.bigint "government_id", null: false
+    t.bigint "parent_id"
+    t.string "title", null: false
+    t.text "description", null: false
+    t.text "original_text"
+    t.integer "commitment_type", null: false
+    t.integer "status", default: 0, null: false
+    t.date "date_promised"
+    t.date "target_date"
+    t.datetime "last_assessed_at"
+    t.string "region_code"
+    t.string "party_code"
+    t.jsonb "metadata", default: {}
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "superseded_by_id"
+    t.bigint "policy_area_id"
+    t.datetime "criteria_generated_at"
+    t.index ["commitment_type"], name: "index_commitments_on_commitment_type"
+    t.index ["government_id", "commitment_type"], name: "index_commitments_on_government_id_and_commitment_type"
+    t.index ["government_id", "status"], name: "index_commitments_on_government_id_and_status"
+    t.index ["government_id"], name: "index_commitments_on_government_id"
+    t.index ["parent_id"], name: "index_commitments_on_parent_id"
+    t.index ["policy_area_id"], name: "index_commitments_on_policy_area_id"
+    t.index ["status"], name: "index_commitments_on_status"
+    t.index ["superseded_by_id"], name: "index_commitments_on_superseded_by_id"
+  end
+
+  create_table "criteria", force: :cascade do |t|
+    t.bigint "commitment_id", null: false
+    t.integer "category", null: false
+    t.text "description", null: false
+    t.text "verification_method"
+    t.integer "status", default: 0, null: false
+    t.text "evidence_notes"
+    t.datetime "assessed_at"
+    t.integer "position", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["commitment_id", "category", "status"], name: "index_criteria_on_commitment_id_and_category_and_status"
+    t.index ["commitment_id", "category"], name: "index_criteria_on_commitment_id_and_category"
+    t.index ["commitment_id"], name: "index_criteria_on_commitment_id"
+    t.index ["status"], name: "index_criteria_on_status"
+  end
+
+  create_table "criterion_assessments", force: :cascade do |t|
+    t.bigint "criterion_id", null: false
+    t.integer "previous_status", null: false
+    t.integer "new_status", null: false
+    t.bigint "source_id"
+    t.text "evidence_notes"
+    t.datetime "assessed_at", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["criterion_id", "assessed_at"], name: "index_criterion_assessments_on_criterion_id_and_assessed_at"
+    t.index ["criterion_id"], name: "index_criterion_assessments_on_criterion_id"
+    t.index ["source_id"], name: "index_criterion_assessments_on_source_id"
   end
 
   create_table "department_promises", force: :cascade do |t|
@@ -321,6 +422,16 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_17_190044) do
     t.index ["government_id"], name: "index_ministers_on_government_id"
   end
 
+  create_table "policy_areas", force: :cascade do |t|
+    t.string "name", null: false
+    t.string "slug", null: false
+    t.text "description"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["name"], name: "index_policy_areas_on_name", unique: true
+    t.index ["slug"], name: "index_policy_areas_on_slug", unique: true
+  end
+
   create_table "promises", force: :cascade do |t|
     t.string "promise_id"
     t.datetime "action_type_classified_at"
@@ -390,6 +501,36 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_17_190044) do
     t.datetime "updated_at", null: false
   end
 
+  create_table "source_documents", force: :cascade do |t|
+    t.bigint "government_id", null: false
+    t.integer "source_type", null: false
+    t.string "title", null: false
+    t.string "url"
+    t.date "date"
+    t.integer "status", default: 0, null: false
+    t.jsonb "extraction_metadata", default: {}
+    t.text "error_message"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["government_id"], name: "index_source_documents_on_government_id"
+  end
+
+  create_table "sources", force: :cascade do |t|
+    t.bigint "government_id", null: false
+    t.integer "source_type", null: false
+    t.string "title", null: false
+    t.string "url"
+    t.date "date"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.string "source_type_other"
+    t.bigint "source_document_id"
+    t.index ["government_id", "source_type"], name: "index_sources_on_government_id_and_source_type"
+    t.index ["government_id"], name: "index_sources_on_government_id"
+    t.index ["source_document_id"], name: "index_sources_on_source_document_id"
+    t.index ["source_type"], name: "index_sources_on_source_type"
+  end
+
   create_table "statcan_datasets", force: :cascade do |t|
     t.text "statcan_url", null: false
     t.string "name", null: false
@@ -437,6 +578,18 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_17_190044) do
   add_foreign_key "activities", "entries"
   add_foreign_key "activities", "governments"
   add_foreign_key "canadian_builders", "governments"
+  add_foreign_key "commitment_departments", "commitments"
+  add_foreign_key "commitment_departments", "departments"
+  add_foreign_key "commitment_matches", "commitments"
+  add_foreign_key "commitment_sources", "commitments"
+  add_foreign_key "commitment_sources", "sources"
+  add_foreign_key "commitments", "commitments", column: "parent_id"
+  add_foreign_key "commitments", "commitments", column: "superseded_by_id"
+  add_foreign_key "commitments", "governments"
+  add_foreign_key "commitments", "policy_areas"
+  add_foreign_key "criteria", "commitments"
+  add_foreign_key "criterion_assessments", "criteria"
+  add_foreign_key "criterion_assessments", "sources"
   add_foreign_key "department_promises", "departments"
   add_foreign_key "department_promises", "promises"
   add_foreign_key "departments", "governments"
@@ -452,5 +605,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_17_190044) do
   add_foreign_key "messages", "tool_calls"
   add_foreign_key "ministers", "departments"
   add_foreign_key "ministers", "governments"
+  add_foreign_key "source_documents", "governments"
+  add_foreign_key "sources", "governments"
+  add_foreign_key "sources", "source_documents"
   add_foreign_key "tool_calls", "messages"
 end

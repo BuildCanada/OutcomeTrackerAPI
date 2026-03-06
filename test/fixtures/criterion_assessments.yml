@@ -1,0 +1,7 @@
+defence_progress_initial:
+  criterion: defence_progress
+  previous_status: 0
+  new_status: 1
+  source: budget_2025
+  evidence_notes: "2025 budget shows 1.4% to 1.6% increase in defence spending as % of GDP"
+  assessed_at: 2025-06-01

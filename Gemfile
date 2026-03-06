@@ -68,6 +68,8 @@ gem "structify", "~> 0.3.4"
 
 gem "nokogiri", "~> 1.18"
 
+gem "pdf-reader", "~> 2.12", require: "pdf-reader"
+
 gem "marksmith", "~> 0.4.5"
 gem "commonmarker", "~> 2.3"
 

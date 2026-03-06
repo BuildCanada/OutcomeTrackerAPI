@@ -1,4 +1,6 @@
 class Bill < ApplicationRecord
+  has_many :commitment_matches, as: :matchable, dependent: :destroy
+
   def self.sync_all
     api_bills_array = BillsFetcher.fetch("https://www.parl.ca/legisinfo/en/bills/json")
     bills_attributes = api_bills_array.map { |api_data| attributes_from_api(api_data) }
@@ -27,6 +29,23 @@ class Bill < ApplicationRecord
       latest_activity_at: parse_timestamp(api_data["LatestActivityDateTime"]),
       updated_at: Time.current
     }
+  end
+
+  def filter_commitment_relevance!(inline: false)
+    unless inline
+      return CommitmentRelevanceFilterJob.perform_later(self)
+    end
+
+    CommitmentRelevanceFilterJob.perform_now(self)
+  end
+
+  def format_for_llm
+    <<~TEXT
+    Bill Number: #{bill_number_formatted}
+    Short Title: #{short_title}
+    Long Title: #{long_title}
+    Latest Activity: #{latest_activity}
+    TEXT
   end
 
   private_class_method def self.parse_timestamp(timestamp_string)

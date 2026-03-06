@@ -1,0 +1,4 @@
+finance_defence:
+  commitment: defence_spending
+  department: finance
+  is_lead: true

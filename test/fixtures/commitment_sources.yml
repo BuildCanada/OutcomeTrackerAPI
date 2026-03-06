@@ -1,0 +1,8 @@
+platform_source:
+  commitment: defence_spending
+  source: liberal_platform
+  excerpt: "We will increase defence spending to 2% of GDP by 2030."
+
+budget_source:
+  commitment: defence_spending
+  source: budget_2025

@@ -1,0 +1,19 @@
+defence:
+  name: "Defence and Security"
+  slug: "defence"
+  description: "Military spending, defence procurement, and security initiatives"
+
+healthcare:
+  name: "Healthcare"
+  slug: "healthcare"
+  description: "Health services, medical transfers, and healthcare funding"
+
+environment:
+  name: "Environment and Climate"
+  slug: "environment"
+  description: "Environmental protection and climate action initiatives"
+
+economy:
+  name: "Economy and Trade"
+  slug: "economy"
+  description: "Economic development and international trade"
