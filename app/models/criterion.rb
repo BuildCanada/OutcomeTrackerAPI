@@ -13,7 +13,6 @@ class Criterion < ApplicationRecord
   enum :status, {
     not_assessed: 0,
     met: 1,
-    partially_met: 2,
     not_met: 3,
     no_longer_applicable: 4
   }

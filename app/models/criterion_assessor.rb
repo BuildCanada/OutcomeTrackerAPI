@@ -10,7 +10,7 @@ class CriterionAssessor < Chat
     name "CriterionAssessor"
     description "Assesses a criterion against matched evidence"
     field :assessment, :object, properties: {
-      "new_status" => { type: "string", enum: %w[not_assessed met partially_met not_met no_longer_applicable] },
+      "new_status" => { type: "string", enum: %w[not_assessed met not_met no_longer_applicable] },
       "evidence_notes" => { type: "string", description: "Explanation referencing specific evidence" },
       "confidence" => { type: "number", description: "0.0 to 1.0" }
     }
@@ -41,10 +41,12 @@ class CriterionAssessor < Chat
 
     ASSESSMENT RULES:
     - met: Clear evidence that this criterion is fully satisfied
-    - partially_met: Some evidence of progress but not complete
-    - not_met: Evidence exists but shows criterion is not satisfied, or contradictory evidence
+    - not_met: Criterion is not satisfied, even if there is some progress toward it
     - not_assessed: Insufficient evidence to make any determination
     - no_longer_applicable: The commitment has been abandoned or the criterion is moot
+
+    There is NO "partially met" status. Criteria are binary: met or not_met.
+    Progress toward meeting a criterion does not make it met — that is tracked separately by progress criteria.
 
     Be CONSERVATIVE. Only mark as "met" if evidence clearly supports it.
     If current status is already "met" and no contradictory evidence, keep it "met".

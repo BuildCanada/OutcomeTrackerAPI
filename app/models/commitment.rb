@@ -65,13 +65,13 @@ class Commitment < ApplicationRecord
 
     if success.all?(&:met?)
       update!(status: :implemented)
-    elsif success.any? { |c| c.met? || c.partially_met? }
-      if execution.any? { |c| c.met? || c.partially_met? }
+    elsif success.any?(&:met?)
+      if execution.any?(&:met?)
         update!(status: :partially_implemented)
       else
         update!(status: :in_progress)
       end
-    elsif execution.any? { |c| c.met? || c.partially_met? }
+    elsif execution.any?(&:met?)
       update!(status: :in_progress)
     end
   end
