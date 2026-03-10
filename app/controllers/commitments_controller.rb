@@ -4,6 +4,7 @@ class CommitmentsController < ApplicationController
 
     @commitments = @commitments.search(params[:q]) if params[:q].present?
     @commitments = @commitments.where(policy_area_id: params[:policy_area_id]) if params[:policy_area_id].present?
+    @commitments = @commitments.joins(:policy_area).where(policy_areas: { slug: params[:policy_area] }) if params[:policy_area].present?
     @commitments = @commitments.where(status: params[:status]) if params[:status].present?
     @commitments = @commitments.where(commitment_type: params[:commitment_type]) if params[:commitment_type].present?
     @commitments = @commitments.where(party_code: params[:party_code]) if params[:party_code].present?
