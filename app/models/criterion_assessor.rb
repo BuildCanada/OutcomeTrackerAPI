@@ -44,7 +44,7 @@ class CriterionAssessor < Chat
     - partially_met: Some evidence of progress but not complete
     - not_met: Evidence exists but shows criterion is not satisfied, or contradictory evidence
     - not_assessed: Insufficient evidence to make any determination
-    - no_longer_applicable: The commitment has been superseded or the criterion is moot
+    - no_longer_applicable: The commitment has been abandoned or the criterion is moot
 
     Be CONSERVATIVE. Only mark as "met" if evidence clearly supports it.
     If current status is already "met" and no contradictory evidence, keep it "met".

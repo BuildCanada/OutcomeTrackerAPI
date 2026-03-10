@@ -35,6 +35,7 @@ class SourceDocumentProcessorJob < ApplicationJob
     created_commitments = create_commitments(deduped, source_document.government, source, policy_areas, departments)
 
     set_parent_relationships(created_commitments, deduped)
+    reconcile_commitments(created_commitments, source_document, source)
 
     source_document.update!(
       status: :extracted,
@@ -128,6 +129,7 @@ class SourceDocumentProcessorJob < ApplicationJob
           cs.reference = data["source_reference"]
           cs.excerpt = data["original_text"]&.truncate(500)
         end
+        update_commitment_if_drifted(commitment, data, source)
         created[data["title"]] = commitment
         next
       end
@@ -174,6 +176,72 @@ class SourceDocumentProcessorJob < ApplicationJob
       parent = created[data["parent_title"]]
       next unless child && parent
       child.update!(parent: parent) unless child.parent_id == parent.id
+    end
+  end
+
+  def update_commitment_if_drifted(commitment, data, source)
+    tracked_fields = %w[title description original_text]
+    changes = {}
+
+    tracked_fields.each do |field|
+      new_value = data[field]
+      next if new_value.blank?
+      next if commitment.send(field) == new_value
+      changes[field] = new_value
+    end
+
+    return if changes.empty?
+
+    old_values = {
+      title: commitment.title,
+      description: commitment.description,
+      original_text: commitment.original_text
+    }
+    new_values = old_values.merge(changes.symbolize_keys)
+
+    summarizer = CommitmentDriftSummarizer.create!(record: commitment)
+    summarizer.extract!(summarizer.prompt(old_values, new_values))
+
+    commitment.drift_source = source
+    commitment.drift_change_summary = summarizer.change_summary
+    commitment.update!(changes)
+  end
+
+  def reconcile_commitments(created_commitments, source_document, source)
+    created_ids = created_commitments.values.map(&:id)
+    active_commitments = Commitment.where(government: source_document.government)
+                                   .where.not(id: created_ids)
+                                   .where.not(status: :abandoned)
+
+    return if active_commitments.empty?
+
+    reconciler = CommitmentReconciler.create!(record: source_document)
+    reconciler.extract!(reconciler.prompt(created_commitments.values, active_commitments))
+
+    (reconciler.update_existing || []).each do |entry|
+      existing = Commitment.find_by(id: entry["existing_commitment_id"])
+      new_commitment = created_commitments.values.find { |c| c.title == entry["new_commitment_title"] }
+      next unless existing && new_commitment
+
+      data = {
+        "title" => new_commitment.title,
+        "description" => new_commitment.description,
+        "original_text" => new_commitment.original_text
+      }
+      update_commitment_if_drifted(existing, data, source)
+
+      new_commitment.commitment_sources.update_all(commitment_id: existing.id)
+      new_commitment.destroy!
+      created_commitments.delete(entry["new_commitment_title"])
+    end
+
+    (reconciler.abandoned || []).each do |entry|
+      next unless entry["confidence"].to_f >= 0.6
+      commitment = Commitment.find_by(id: entry["commitment_id"])
+      next unless commitment
+
+      commitment.abandonment_reason = entry["reason"]
+      commitment.update!(status: :abandoned)
     end
   end
 end

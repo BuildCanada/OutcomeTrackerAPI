@@ -2,6 +2,8 @@ class CommitmentRelevanceFilterJob < ApplicationJob
   queue_as :default
 
   def perform(matchable)
+    return if matchable.is_a?(Bill) && !matchable.government_bill?
+
     commitments = active_commitments_for(matchable)
     return if commitments.none?
 
@@ -29,7 +31,7 @@ class CommitmentRelevanceFilterJob < ApplicationJob
   private
 
   def active_commitments_for(matchable)
-    scope = Commitment.where.not(status: [:abandoned, :superseded])
+    scope = Commitment.where.not(status: :abandoned)
 
     if matchable.respond_to?(:government_id) && matchable.government_id.present?
       scope.where(government_id: matchable.government_id)

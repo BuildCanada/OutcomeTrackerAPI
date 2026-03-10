@@ -1,5 +1,5 @@
 class Avo::Resources::Commitment < Avo::BaseResource
-  self.includes = [ :government, :parent, :superseded_by, :policy_area ]
+  self.includes = [ :government, :parent, :policy_area ]
   self.search = {
     query: -> { query.ransack(title_cont: params[:q], m: "or").result(distinct: false) }
   }
@@ -22,7 +22,6 @@ class Avo::Resources::Commitment < Avo::BaseResource
     field :government, as: :belongs_to
     field :policy_area, as: :belongs_to
     field :parent, as: :belongs_to
-    field :superseded_by, as: :belongs_to
     field :lead_department, as: :has_one
 
     field :children, as: :has_many

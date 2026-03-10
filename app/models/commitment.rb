@@ -1,11 +1,11 @@
 class Commitment < ApplicationRecord
+  attr_accessor :drift_source, :drift_change_summary, :abandonment_reason
+
   belongs_to :government
   belongs_to :policy_area, optional: true
   belongs_to :parent, class_name: "Commitment", optional: true
-  belongs_to :superseded_by, class_name: "Commitment", optional: true
 
   has_many :children, class_name: "Commitment", foreign_key: :parent_id, dependent: :destroy
-  has_many :supersedes, class_name: "Commitment", foreign_key: :superseded_by_id, dependent: :nullify
   has_many :commitment_sources, dependent: :destroy
   has_many :sources, through: :commitment_sources
   has_many :criteria, dependent: :destroy
@@ -38,8 +38,7 @@ class Commitment < ApplicationRecord
     in_progress: 1,
     partially_implemented: 2,
     implemented: 3,
-    abandoned: 4,
-    superseded: 5
+    abandoned: 4
   }
 
   validates :title, presence: true
@@ -108,8 +107,11 @@ class Commitment < ApplicationRecord
     status_changes.create!(
       previous_status: previous,
       new_status: current,
-      changed_at: Time.current
+      changed_at: Time.current,
+      reason: abandonment_reason
     )
+  ensure
+    self.abandonment_reason = nil
   end
 
   def tracking_drift?
@@ -128,7 +130,12 @@ class Commitment < ApplicationRecord
       description: changes[:description] || description,
       original_text: changes[:original_text] || original_text,
       target_date: changes[:target_date] || target_date,
-      revision_date: Date.current
+      revision_date: Date.current,
+      source: drift_source,
+      change_summary: drift_change_summary
     )
+  ensure
+    self.drift_source = nil
+    self.drift_change_summary = nil
   end
 end

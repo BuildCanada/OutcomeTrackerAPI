@@ -29,14 +29,6 @@ if @commitment.parent
   end
 end
 
-if @commitment.superseded_by
-  json.superseded_by do
-    json.(@commitment.superseded_by, :id, :title)
-  end
-end
-
-json.supersedes @commitment.supersedes, :id, :title, :status
-
 json.children @commitment.children, :id, :title, :status
 
 json.sources @commitment.commitment_sources.includes(:source) do |cs|

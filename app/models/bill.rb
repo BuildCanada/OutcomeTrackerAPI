@@ -1,5 +1,13 @@
 class Bill < ApplicationRecord
+  GOVERNMENT_BILL_TYPES = [ "House Government Bill", "Senate Government Bill" ].freeze
+
   has_many :commitment_matches, as: :matchable, dependent: :destroy
+
+  scope :government_bills, -> { where("data->>'BillTypeEn' IN (?)", GOVERNMENT_BILL_TYPES) }
+
+  def government_bill?
+    GOVERNMENT_BILL_TYPES.include?(data&.dig("BillTypeEn"))
+  end
 
   def self.sync_all
     api_bills_array = BillsFetcher.fetch("https://www.parl.ca/legisinfo/en/bills/json")

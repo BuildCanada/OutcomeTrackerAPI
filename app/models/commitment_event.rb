@@ -8,8 +8,7 @@ class CommitmentEvent < ApplicationRecord
     legislative_action: 2,
     funding_allocated: 3,
     status_change: 4,
-    criterion_assessed: 5,
-    superseded: 6
+    criterion_assessed: 5
   }
 
   enum :action_type, {

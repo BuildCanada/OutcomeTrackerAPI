@@ -85,15 +85,6 @@ class CommitmentTest < ActiveSupport::TestCase
     assert_equal departments(:finance), commitment.lead_department
   end
 
-  test "superseded_by association" do
-    old_commitment = commitments(:superseded_commitment)
-    new_commitment = commitments(:defence_spending)
-
-    assert old_commitment.superseded?
-    assert_equal new_commitment, old_commitment.superseded_by
-    assert_includes new_commitment.supersedes, old_commitment
-  end
-
   test "destroying commitment cascades to children" do
     commitment = commitments(:defence_spending)
     assert_difference "Commitment.count", -2 do

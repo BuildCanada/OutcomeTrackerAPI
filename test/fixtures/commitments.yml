@@ -30,5 +30,4 @@ superseded_commitment:
   title: "Original defence target of 1.5% GDP"
   description: "Increase defence spending to 1.5% of GDP"
   commitment_type: 1
-  status: 5
-  superseded_by: defence_spending
+  status: 4
