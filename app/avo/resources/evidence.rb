@@ -1,4 +1,8 @@
 class Avo::Resources::Evidence < Avo::BaseResource
+  class << self
+    def navigation_label = "Evidences [deprecated]"
+  end
+
   self.includes = [ :promise, :activity ]
   self.title = :search_result_title
   self.description = :search_result_description

@@ -1,4 +1,8 @@
 class Avo::Resources::DepartmentPromise < Avo::BaseResource
+  class << self
+    def navigation_label = "Department promises [deprecated]"
+  end
+
   # self.includes = []
   # self.attachments = []
   # self.search = {

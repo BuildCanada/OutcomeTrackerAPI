@@ -1,4 +1,8 @@
 class Avo::Resources::Activity < Avo::BaseResource
+  class << self
+    def navigation_label = "Activities [deprecated]"
+  end
+
   # self.includes = []
   # self.attachments = []
   self.search = {
