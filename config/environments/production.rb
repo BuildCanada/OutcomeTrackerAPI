@@ -34,11 +34,9 @@ Rails.application.configure do
   config.log_tags = [ :request_id ]
 
   rails_logger = ActiveSupport::TaggedLogging.logger(STDOUT)
-
   appsignal_logger = Appsignal::Logger.new("rails")
-  appsignal_logger.broadcast_to(rails_logger)
 
-  config.logger   = ActiveSupport::TaggedLogging.new(appsignal_logger)
+  config.logger = ActiveSupport::BroadcastLogger.new(rails_logger, appsignal_logger)
 
   # Change to "debug" to log everything (including potentially personally-identifiable information!)
   config.log_level = ENV.fetch("RAILS_LOG_LEVEL", "info")

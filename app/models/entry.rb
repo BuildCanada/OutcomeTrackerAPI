@@ -45,7 +45,7 @@ class Entry < ApplicationRecord
     end
     # Fetch data from external source
 
-    r = HTTP.get(url)
+    r = HTTP.timeout(connect: 10, read: 30).get(url)
 
     if r.status >= 300 or r.status < 200
       Rails.logger.error("Error fetching data for entry #{id}: #{r.status}")
