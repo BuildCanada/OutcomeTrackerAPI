@@ -2,7 +2,7 @@ class FeedItemsController < ApplicationController
   def index
     scope = params[:commitment_id] ? FeedItem.where(commitment_id: params[:commitment_id]) : FeedItem.all
 
-    @feed_items = scope
+    @filtered = scope
       .newest_first
       .by_event_type(params[:event_type])
       .by_policy_area(params[:policy_area_id])
@@ -10,7 +10,8 @@ class FeedItemsController < ApplicationController
       .until_date(params[:until])
       .includes(:commitment, :policy_area)
 
-    @feed_items = @feed_items.limit(page_size).offset(page_offset)
+    @total_count = @filtered.count
+    @feed_items = @filtered.limit(page_size).offset(page_offset)
 
     respond_to do |format|
       format.json { render json: feed_items_json }
@@ -20,18 +21,22 @@ class FeedItemsController < ApplicationController
 
   private
 
+  def current_page
+    [(params[:page] || 1).to_i, 1].max
+  end
+
   def page_size
     [(params[:per_page] || 50).to_i, 100].min
   end
 
   def page_offset
-    [(params[:page] || 1).to_i - 1, 0].max * page_size
+    (current_page - 1) * page_size
   end
 
   def feed_items_json
     {
       feed_items: @feed_items.map { |fi| serialize_feed_item(fi) },
-      meta: { page: (params[:page] || 1).to_i, per_page: page_size }
+      meta: { page: current_page, per_page: page_size, total_count: @total_count }
     }
   end
 

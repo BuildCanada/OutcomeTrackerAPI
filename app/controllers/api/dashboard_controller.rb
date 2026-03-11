@@ -45,9 +45,25 @@ module Api
         }
       end
 
+      all_commitments = government.commitments
+      total = all_commitments.count
+      status_counts = all_commitments.group(:status).count
+
+      not_started = status_counts.fetch("not_started", 0)
+      implemented = status_counts.fetch("implemented", 0)
+      in_progress = status_counts.fetch("in_progress", 0) +
+                    status_counts.fetch("partially_implemented", 0)
+      successful = all_commitments.joins(:success_criteria).merge(Criterion.where(status: :met)).distinct.count
+
       render json: {
         government: { id: government.id, name: government.name },
-        total_commitments: government.commitments.count,
+        total_commitments: total,
+        summary: {
+          not_started: { count: not_started, label: "Not Started", subtitle: "no action taken" },
+          completed: { count: implemented, label: "Completed", subtitle: "of #{total} commitments" },
+          successful: { count: successful, label: "Successful", subtitle: "meeting success criteria" }
+        },
+        status_counts: status_counts,
         policy_areas: data
       }
     end
