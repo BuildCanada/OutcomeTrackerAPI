@@ -9,6 +9,12 @@ Rails.application.routes.draw do
     end
   end
 
+  # Custom Avo tool routes
+  scope :admin, module: "avo" do
+    get "scraping_health", to: "scraping_health#index", as: "avo_scraping_health_index"
+    post "scraping_health/requeue", to: "scraping_health#requeue", as: "avo_scraping_health_requeue"
+  end
+
   devise_for :users
   resources :activities, only: [ :index, :show ]
   resources :bills, only: [ :index, :show ]
@@ -31,6 +37,7 @@ Rails.application.routes.draw do
   end
 
   namespace :admin do
+    get "dashboard/scraping_health", to: "dashboard#scraping_health"
     resources :promises, only: [ :index, :show, :update, :destroy ]
     resources :evidence, only: [ :index, :show, :update, :destroy ]
   end
