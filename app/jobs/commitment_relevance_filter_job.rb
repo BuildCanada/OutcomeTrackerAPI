@@ -34,9 +34,21 @@ class CommitmentRelevanceFilterJob < ApplicationJob
     scope = Commitment.where.not(status: :abandoned)
 
     if matchable.respond_to?(:government_id) && matchable.government_id.present?
-      scope.where(government_id: matchable.government_id)
-    else
-      scope
+      scope = scope.where(government_id: matchable.government_id)
+    end
+
+    evidence_date = evidence_date_for(matchable)
+    if evidence_date.present?
+      scope = scope.where("COALESCE(date_promised, created_at::date) <= ?", evidence_date)
+    end
+
+    scope
+  end
+
+  def evidence_date_for(matchable)
+    case matchable
+    when Entry then matchable.published_at&.to_date
+    when Bill then matchable.passed_house_first_reading_at&.to_date
     end
   end
 
