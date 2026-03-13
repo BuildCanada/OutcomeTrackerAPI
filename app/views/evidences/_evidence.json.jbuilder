@@ -9,6 +9,7 @@ json.(evidence,
 json.(evidence.activity,
   :title,
   :summary,
-  :source_url,
-  :published_at
+  :published_at,
 )
+
+json.source_url evidence.activity.entry.url
