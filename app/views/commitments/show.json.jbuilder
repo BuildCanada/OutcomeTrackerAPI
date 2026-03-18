@@ -23,14 +23,6 @@ json.government do
   json.(@commitment.government, :id, :name, :slug)
 end
 
-if @commitment.parent
-  json.parent do
-    json.(@commitment.parent, :id, :title)
-  end
-end
-
-json.children @commitment.children, :id, :title, :status
-
 json.sources @commitment.commitment_sources.includes(:source) do |cs|
   json.(cs, :id, :section, :reference, :excerpt)
   json.source do
@@ -54,12 +46,13 @@ end
 json.departments @commitment.commitment_departments do |cd|
   json.id cd.department.id
   json.display_name cd.department.display_name
+  json.slug cd.department.slug
   json.is_lead cd.is_lead
 end
 
 if @commitment.lead_department
   json.lead_department do
-    json.(@commitment.lead_department, :id, :display_name)
+    json.(@commitment.lead_department, :id, :display_name, :slug)
   end
 end
 

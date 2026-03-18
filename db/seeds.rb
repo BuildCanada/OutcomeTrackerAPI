@@ -4,4 +4,3 @@
 
 require_relative './seeds/policy_areas'
 require_relative './seeds/canada'
-require_relative './seeds/commitments_liberal_2025'

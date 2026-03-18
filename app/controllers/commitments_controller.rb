@@ -14,6 +14,14 @@ class CommitmentsController < ApplicationController
       @commitments = @commitments.joins(:commitment_departments).where(commitment_departments: { department_id: params[:department_id] })
     end
 
+    if params[:department].present?
+      @commitments = @commitments.joins(:commitment_departments).joins("INNER JOIN departments ON departments.id = commitment_departments.department_id").where(departments: { slug: params[:department] })
+    end
+
+    if params[:lead_department].present?
+      @commitments = @commitments.joins(:lead_commitment_department).joins("INNER JOIN departments AS lead_depts ON lead_depts.id = commitment_departments.department_id").where(lead_depts: { slug: params[:lead_department] })
+    end
+
     @commitments = apply_sorting(@commitments)
     @total_count = @commitments.count
     @commitments = @commitments.limit(page_size).offset(page_offset)

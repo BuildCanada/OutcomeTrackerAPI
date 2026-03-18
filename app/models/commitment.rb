@@ -59,21 +59,7 @@ class Commitment < ApplicationRecord
   end
 
   def derive_status_from_criteria!
-    success = success_criteria.to_a
-    execution = criteria.where(category: :completion).to_a
-    return if success.empty?
-
-    if success.all?(&:met?)
-      update!(status: :implemented)
-    elsif success.any?(&:met?)
-      if execution.any?(&:met?)
-        update!(status: :partially_implemented)
-      else
-        update!(status: :in_progress)
-      end
-    elsif execution.any?(&:met?)
-      update!(status: :in_progress)
-    end
+    CommitmentStatusDerivationJob.perform_later(self)
   end
 
   def self.ransackable_attributes(auth_object = nil)
@@ -130,7 +116,7 @@ class Commitment < ApplicationRecord
       description: changes[:description] || description,
       original_text: changes[:original_text] || original_text,
       target_date: changes[:target_date] || target_date,
-      revision_date: Date.current,
+      revision_date: drift_source&.date || Date.current,
       source: drift_source,
       change_summary: drift_change_summary
     )

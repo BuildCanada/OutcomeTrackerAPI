@@ -22,21 +22,30 @@ class CommitmentDeduplicator < Chat
     "You are a deduplication assistant that identifies duplicate government commitments extracted from overlapping document pages."
   end
 
-  def prompt(chunk_a_titles, chunk_b_titles)
+  def prompt(chunk_a_commitments, chunk_b_commitments)
     <<~PROMPT
     Two adjacent chunks of a document were processed with a 1-page overlap.
-    Some commitments may have been extracted from both chunks.
+    Some commitments may have been extracted from both chunks with slightly different wording.
 
     Identify any DUPLICATE pairs — commitments that refer to the same promise.
+    Two commitments are duplicates if they describe the same specific action, even if the titles differ slightly.
     Only flag true duplicates, not merely related commitments.
 
     For each duplicate pair, pick the one with the more specific/detailed title to keep.
 
     CHUNK A commitments:
-    #{chunk_a_titles.map { |t| "- #{t}" }.join("\n")}
+    #{format_commitments(chunk_a_commitments)}
 
     CHUNK B commitments:
-    #{chunk_b_titles.map { |t| "- #{t}" }.join("\n")}
+    #{format_commitments(chunk_b_commitments)}
     PROMPT
+  end
+
+  private
+
+  def format_commitments(commitments)
+    commitments.map do |c|
+      "- #{c['title']}\n  Description: #{c['description']&.truncate(200)}"
+    end.join("\n")
   end
 end

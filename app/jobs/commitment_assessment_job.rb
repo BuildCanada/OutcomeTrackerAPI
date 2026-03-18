@@ -35,6 +35,6 @@ class CommitmentAssessmentJob < ApplicationJob
 
     unassessed_matches.update_all(assessed: true, assessed_at: Time.current)
     commitment.update!(last_assessed_at: Time.current)
-    commitment.derive_status_from_criteria!
+    CommitmentStatusDerivationJob.perform_later(commitment)
   end
 end

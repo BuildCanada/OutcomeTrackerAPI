@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_03_10_000005) do
+ActiveRecord::Schema[8.0].define(version: 2026_03_17_000002) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -450,9 +450,35 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_10_000005) do
     t.index ["scheduled_at"], name: "index_good_jobs_on_scheduled_at", where: "(finished_at IS NULL)"
   end
 
-  create_table "governments", force: :cascade do |t|
+  create_table "government_phone_line_availabilities", force: :cascade do |t|
+    t.bigint "government_phone_line_id", null: false
+    t.integer "wait_time_minutes", null: false
+    t.datetime "scraped_at", null: false
+    t.text "raw_text"
+    t.jsonb "metadata", default: {}
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["government_phone_line_id", "scraped_at"], name: "index_phone_line_availabilities_on_line_and_time"
+    t.index ["government_phone_line_id"], name: "idx_on_government_phone_line_id_52aa00b178"
+    t.index ["scraped_at"], name: "index_government_phone_line_availabilities_on_scraped_at"
+  end
+
+  create_table "government_phone_lines", force: :cascade do |t|
     t.string "name", null: false
-    t.string "slug", null: false
+    t.string "phone_number", null: false
+    t.string "department", null: false
+    t.text "description"
+    t.string "url"
+    t.jsonb "metadata", default: {}
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["department"], name: "index_government_phone_lines_on_department"
+    t.index ["phone_number"], name: "index_government_phone_lines_on_phone_number", unique: true
+  end
+
+  create_table "governments", force: :cascade do |t|
+    t.string "name"
+    t.string "slug"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.date "mandate_start"
@@ -487,8 +513,17 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_10_000005) do
     t.string "role", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "person_id"
+    t.string "email"
+    t.string "phone"
+    t.string "constituency"
+    t.string "province"
+    t.string "party"
+    t.string "website"
+    t.jsonb "contact_data", default: {}
     t.index ["department_id"], name: "index_ministers_on_department_id"
     t.index ["government_id"], name: "index_ministers_on_government_id"
+    t.index ["person_id", "department_id"], name: "index_ministers_on_person_id_and_department_id", unique: true
   end
 
   create_table "policy_areas", force: :cascade do |t|
@@ -678,6 +713,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_10_000005) do
   add_foreign_key "feed_items", "commitments"
   add_foreign_key "feed_items", "policy_areas"
   add_foreign_key "feeds", "governments"
+  add_foreign_key "government_phone_line_availabilities", "government_phone_lines"
   add_foreign_key "messages", "chats"
   add_foreign_key "messages", "tool_calls"
   add_foreign_key "ministers", "departments"

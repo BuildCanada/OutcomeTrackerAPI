@@ -71,7 +71,7 @@ class CommitmentTest < ActiveSupport::TestCase
   test "has many criteria with scoped accessors" do
     commitment = commitments(:defence_spending)
     assert_equal 1, commitment.success_criteria.count
-    assert_equal 1, commitment.execution_criteria.count
+    assert_equal 1, commitment.completion_criteria.count
     assert_equal 1, commitment.progress_criteria.count
   end
 
@@ -95,7 +95,7 @@ class CommitmentTest < ActiveSupport::TestCase
   test "destroying commitment cascades to sources and criteria" do
     commitment = commitments(:defence_spending)
     assert_difference "CommitmentSource.count", -2 do
-      assert_difference "Criterion.count", -3 do
+      assert_difference "Criterion.count", -4 do
         assert_difference "CommitmentDepartment.count", -1 do
           commitment.destroy
         end

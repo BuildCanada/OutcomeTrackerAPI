@@ -56,7 +56,7 @@ class FeedItemsController < ApplicationController
   end
 
   def render_rss
-    builder = Builder::XmlMarkup.new(indent: 2)
+    builder = ::Builder::XmlMarkup.new(indent: 2)
     builder.instruct! :xml, version: "1.0"
 
     xml = builder.rss(version: "2.0") do |rss|

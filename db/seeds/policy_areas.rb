@@ -13,7 +13,8 @@ policy_areas = [
   { name: "Foreign Affairs", slug: "foreign-affairs", description: "Diplomacy, international development, and foreign policy" },
   { name: "Agriculture and Food", slug: "agriculture", description: "Agriculture, food security, and rural development" },
   { name: "Housing", slug: "housing", description: "Housing affordability and construction" },
-  { name: "Democratic Reform", slug: "democratic-reform", description: "Electoral reform, transparency, and governance" }
+  { name: "Democratic Reform", slug: "democratic-reform", description: "Electoral reform, transparency, and governance" },
+  { name: "Government Reform", slug: "government-reform", description: "Public service modernization, regulatory reform, and government efficiency" }
 ]
 
 policy_areas.each do |attrs|

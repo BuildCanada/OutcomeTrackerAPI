@@ -13,6 +13,12 @@ module Api
         commitments = commitments.where(policy_area: policy_area)
       end
 
+      department = nil
+      if params[:department_slug].present?
+        department = Department.find_by!(slug: params[:department_slug])
+        commitments = commitments.joins(:lead_commitment_department).where(commitment_departments: { department_id: department.id })
+      end
+
       mandate_start = government.mandate_start
       mandate_end = government.mandate_end
 
@@ -106,6 +112,7 @@ module Api
         mandate_end: mandate_end&.iso8601,
         total_commitments: commitments.count,
         policy_area: policy_area ? { id: policy_area.id, name: policy_area.name, slug: policy_area.slug } : nil,
+        department: department ? { id: department.id, display_name: department.display_name, slug: department.slug } : nil,
         series: series
       }
     end

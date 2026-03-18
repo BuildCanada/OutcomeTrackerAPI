@@ -9,7 +9,7 @@ json.commitments @commitments do |commitment|
 
   if commitment.lead_department
     json.lead_department do
-      json.(commitment.lead_department, :id, :display_name)
+      json.(commitment.lead_department, :id, :display_name, :slug)
     end
   end
 end

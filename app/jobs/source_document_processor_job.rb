@@ -2,6 +2,16 @@ class SourceDocumentProcessorJob < ApplicationJob
   queue_as :default
 
   def perform(source_document)
+    deduped = extract_and_dedup(source_document)
+    create_and_reconcile(source_document, deduped)
+  rescue => e
+    source_document.update!(status: :failed, error_message: e.message)
+    raise
+  end
+
+  # Phase 1: Extract commitments from PDF chunks and deduplicate within-document.
+  # This phase is document-independent and can run in parallel across documents.
+  def extract_and_dedup(source_document)
     source_document.update!(status: :processing)
 
     pages = extract_pdf_pages(source_document.document)
@@ -23,30 +33,47 @@ class SourceDocumentProcessorJob < ApplicationJob
         Rails.logger.info("Reusing existing extraction for #{chunk['section_title']}")
       else
         extractor = CommitmentExtractor.create!(record: source_document)
-        extractor.extract!(extractor.prompt(chunk, existing_commitments, policy_areas, departments))
+        with_retry { extractor.extract!(extractor.prompt(chunk, existing_commitments, policy_areas, departments)) }
       end
 
       all_extracted.concat(extractor.commitments.map { |c| c.merge("chunk_section" => chunk["section_title"]) })
     end
 
-    deduped = deduplicate(all_extracted, source_document)
+    deduplicate(all_extracted, source_document)
+  end
+
+  # Phase 2: Create commitments and reconcile against existing ones.
+  # This phase must run sequentially so each document reconciles against prior documents.
+  def create_and_reconcile(source_document, deduped)
+    policy_areas = PolicyArea.all
+    departments = Department.where(government: source_document.government)
 
     source = create_source(source_document)
     created_commitments = create_commitments(deduped, source_document.government, source, policy_areas, departments)
 
-    set_parent_relationships(created_commitments, deduped)
     reconcile_commitments(created_commitments, source_document, source)
 
     source_document.update!(
       status: :extracted,
-      extraction_metadata: { commitment_count: created_commitments.size, chunk_count: chunks.size }
+      extraction_metadata: { commitment_count: created_commitments.size, chunk_count: deduped.size }
     )
-  rescue => e
-    source_document.update!(status: :failed, error_message: e.message)
-    raise
   end
 
   private
+
+  def with_retry(max_attempts: 5, &block)
+    attempts = 0
+    begin
+      attempts += 1
+      block.call
+    rescue Faraday::TimeoutError, Faraday::ConnectionFailed, Net::ReadTimeout, Errno::ECONNRESET => e
+      raise if attempts >= max_attempts
+      wait = 2**attempts
+      Rails.logger.warn("Retry #{attempts}/#{max_attempts} after #{e.class}: #{e.message}. Waiting #{wait}s...")
+      sleep(wait)
+      retry
+    end
+  end
 
   def extract_pdf_pages(attachment)
     attachment.open do |file|
@@ -82,19 +109,14 @@ class SourceDocumentProcessorJob < ApplicationJob
   end
 
   def deduplicate(commitments, source_document)
-    # Group by chunk section
     by_chunk = commitments.group_by { |c| c["chunk_section"] }
     chunk_keys = by_chunk.keys
 
-    # Use LLM to find duplicates between adjacent chunks
     titles_to_remove = Set.new
 
     chunk_keys.each_cons(2) do |chunk_a_key, chunk_b_key|
-      chunk_a_titles = by_chunk[chunk_a_key].map { |c| c["title"] }
-      chunk_b_titles = by_chunk[chunk_b_key].map { |c| c["title"] }
-
       deduper = CommitmentDeduplicator.create!(record: source_document)
-      deduper.extract!(deduper.prompt(chunk_a_titles, chunk_b_titles))
+      deduper.extract!(deduper.prompt(by_chunk[chunk_a_key], by_chunk[chunk_b_key]))
 
       (deduper.duplicate_pairs || []).each do |pair|
         titles_to_remove << pair["remove_title"]
@@ -169,17 +191,12 @@ class SourceDocumentProcessorJob < ApplicationJob
     created
   end
 
-  def set_parent_relationships(created, extracted)
-    extracted.each do |data|
-      next unless data["parent_title"].present?
-      child = created[data["title"]]
-      parent = created[data["parent_title"]]
-      next unless child && parent
-      child.update!(parent: parent) unless child.parent_id == parent.id
-    end
-  end
-
   def update_commitment_if_drifted(commitment, data, source)
+    # Skip drift detection within the same source document — different phrasing
+    # of the same commitment in the same document is not drift
+    existing_source_doc_ids = commitment.sources.where.not(source_document_id: nil).pluck(:source_document_id)
+    return if source.source_document_id.present? && existing_source_doc_ids.include?(source.source_document_id)
+
     tracked_fields = %w[title description original_text]
     changes = {}
 

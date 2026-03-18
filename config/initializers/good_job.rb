@@ -40,6 +40,18 @@ Rails.application.configure do
       class: "CommitmentAssessmentCronJob",
       description: "Assess commitments with new evidence matches",
       enabled_by_default: -> { Rails.env.production? }
+    },
+    target_date_extraction: {
+      cron: "30 4 * * *", # Daily at 4:30 AM
+      class: "TargetDateExtractionCronJob",
+      description: "Extract target dates from commitment text",
+      enabled_by_default: -> { Rails.env.production? }
+    },
+    ministers_sync: {
+      cron: "0 5 * * *", # Daily at 5 AM
+      class: "MinistersSyncJob",
+      description: "Syncs ministers, department mappings, contact info, and photos from ourcommons.ca",
+      enabled_by_default: -> { Rails.env.production? }
     }
   }
 
