@@ -37,7 +37,7 @@ json.criteria @commitment.criteria.order(:category, :position) do |criterion|
     json.(assessment, :id, :previous_status, :new_status, :evidence_notes, :assessed_at)
     if assessment.source
       json.source do
-        json.(assessment.source, :id, :title, :source_type)
+        json.(assessment.source, :id, :title, :source_type, :url, :date)
       end
     end
   end
@@ -60,7 +60,7 @@ json.timeline @commitment.events.order(:occurred_at) do |event|
   json.(event, :id, :event_type, :action_type, :title, :description, :occurred_at)
   if event.source
     json.source do
-      json.(event.source, :id, :title, :source_type)
+      json.(event.source, :id, :title, :source_type, :url, :date)
     end
   end
 end
@@ -69,7 +69,7 @@ json.announcements @commitment.announcements do |event|
   json.(event, :id, :title, :description, :occurred_at)
   if event.source
     json.source do
-      json.(event.source, :id, :title, :source_type)
+      json.(event.source, :id, :title, :source_type, :url, :date)
     end
   end
 end
@@ -78,7 +78,7 @@ json.actions @commitment.actions do |event|
   json.(event, :id, :title, :description, :occurred_at)
   if event.source
     json.source do
-      json.(event.source, :id, :title, :source_type)
+      json.(event.source, :id, :title, :source_type, :url, :date)
     end
   end
 end
@@ -87,13 +87,18 @@ json.revisions @commitment.revisions.order(:revision_date) do |revision|
   json.(revision, :id, :title, :description, :original_text, :target_date, :change_summary, :revision_date)
   if revision.source
     json.source do
-      json.(revision.source, :id, :title, :source_type)
+      json.(revision.source, :id, :title, :source_type, :url, :date)
     end
   end
 end
 
-json.status_history @commitment.status_changes.order(:changed_at) do |sc|
+json.status_history @commitment.status_changes.includes(:source).order(:changed_at) do |sc|
   json.(sc, :id, :previous_status, :new_status, :changed_at, :reason)
+  if sc.source
+    json.source do
+      json.(sc.source, :id, :title, :source_type, :url, :date)
+    end
+  end
 end
 
 json.recent_feed @commitment.feed_items.newest_first.limit(20) do |fi|

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_03_17_000002) do
+ActiveRecord::Schema[8.0].define(version: 2026_03_18_204853) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -191,8 +191,10 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_17_000002) do
     t.text "reason"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "source_id"
     t.index ["commitment_id", "changed_at"], name: "idx_on_commitment_id_changed_at_15eb0a3265"
     t.index ["commitment_id"], name: "index_commitment_status_changes_on_commitment_id"
+    t.index ["source_id"], name: "index_commitment_status_changes_on_source_id"
   end
 
   create_table "commitments", force: :cascade do |t|
@@ -211,7 +213,6 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_17_000002) do
     t.jsonb "metadata", default: {}
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.bigint "superseded_by_id"
     t.bigint "policy_area_id"
     t.datetime "criteria_generated_at"
     t.index "to_tsvector('english'::regconfig, (((COALESCE(title, ''::character varying))::text || ' '::text) || COALESCE(description, ''::text)))", name: "index_commitments_on_search", using: :gin
@@ -222,7 +223,6 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_17_000002) do
     t.index ["parent_id"], name: "index_commitments_on_parent_id"
     t.index ["policy_area_id"], name: "index_commitments_on_policy_area_id"
     t.index ["status"], name: "index_commitments_on_status"
-    t.index ["superseded_by_id"], name: "index_commitments_on_superseded_by_id"
   end
 
   create_table "criteria", force: :cascade do |t|
@@ -693,8 +693,8 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_17_000002) do
   add_foreign_key "commitment_sources", "commitments"
   add_foreign_key "commitment_sources", "sources"
   add_foreign_key "commitment_status_changes", "commitments"
+  add_foreign_key "commitment_status_changes", "sources"
   add_foreign_key "commitments", "commitments", column: "parent_id"
-  add_foreign_key "commitments", "commitments", column: "superseded_by_id"
   add_foreign_key "commitments", "governments"
   add_foreign_key "commitments", "policy_areas"
   add_foreign_key "criteria", "commitments"

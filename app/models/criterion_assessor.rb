@@ -48,6 +48,17 @@ class CriterionAssessor < Chat
     There is NO "partially met" status. Criteria are binary: met or not_met.
     Progress toward meeting a criterion does not make it met — that is tracked separately by progress criteria.
 
+    EVIDENCE STANDARDS (critical):
+    - Budget announcements, budget speeches, and platform promises are NOT evidence of action.
+      They are statements of intent. A budget saying "we will do X" does not mean X is done or in progress.
+    - For COMPLETION criteria: require Royal Assent (for legislation), Gazette Part II publication
+      (for regulations), or operational program evidence (for spending/programs).
+    - For PROGRESS criteria: require a bill progressing through Parliament, a Gazette Part I
+      proposed regulation, or departmental news showing concrete implementation steps.
+    - A bill that has NOT received Royal Assent means the legislation is NOT enacted.
+      The Budget Implementation Act (Bill C-15) being introduced or progressing is evidence of
+      progress, NOT completion.
+
     Be CONSERVATIVE. Only mark as "met" if evidence clearly supports it.
     If current status is already "met" and no contradictory evidence, keep it "met".
     Reference specific evidence items in your evidence_notes.
@@ -60,9 +71,10 @@ class CriterionAssessor < Chat
     items.map do |item|
       case item
       when Entry
-        "ENTRY: #{item.title} (#{item.published_at&.to_date})\n#{item.parsed_markdown&.truncate(1000)}"
+        "ENTRY [#{item.feed&.title}]: #{item.title} (#{item.published_at&.to_date})\n#{item.parsed_markdown&.truncate(1000)}"
       when Bill
-        "BILL: #{item.bill_number_formatted} - #{item.short_title}\nLatest: #{item.latest_activity} (#{item.latest_activity_at&.to_date})"
+        royal_assent = item.received_royal_assent_at.present? ? "ENACTED (Royal Assent #{item.received_royal_assent_at.to_date})" : "NOT ENACTED"
+        "BILL: #{item.bill_number_formatted} - #{item.short_title}\nStatus: #{royal_assent}\nLatest: #{item.latest_activity} (#{item.latest_activity_at&.to_date})\nHouse: 1R=#{item.passed_house_first_reading_at&.to_date} 2R=#{item.passed_house_second_reading_at&.to_date} 3R=#{item.passed_house_third_reading_at&.to_date}\nSenate: 1R=#{item.passed_senate_first_reading_at&.to_date} 2R=#{item.passed_senate_second_reading_at&.to_date} 3R=#{item.passed_senate_third_reading_at&.to_date}"
       when StatcanDataset
         "STATCAN: #{item.name}\nData: #{item.current_data&.first(3)&.to_json}"
       end

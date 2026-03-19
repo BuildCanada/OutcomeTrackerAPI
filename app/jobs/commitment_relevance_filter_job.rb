@@ -22,7 +22,7 @@ class CommitmentRelevanceFilterJob < ApplicationJob
         ) do |cm|
           cm.relevance_score = match_data["relevance_score"]
           cm.relevance_reasoning = match_data["relevance_reasoning"]
-          cm.matched_at = Time.current
+          cm.matched_at = evidence_date_for(matchable) || Time.current
         end
       end
     end
@@ -49,6 +49,7 @@ class CommitmentRelevanceFilterJob < ApplicationJob
     case matchable
     when Entry then matchable.published_at&.to_date
     when Bill then matchable.passed_house_first_reading_at&.to_date
+    when StatcanDataset then matchable.last_synced_at&.to_date
     end
   end
 

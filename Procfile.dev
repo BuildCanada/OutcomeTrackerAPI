@@ -1,0 +1,2 @@
+web: bin/rails server -p ${PORT:-3000}
+worker: bundle exec good_job start --max-threads=15

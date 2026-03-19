@@ -1,11 +1,16 @@
 module Api
   class BurndownController < ApplicationController
-    STARTED_STATUSES = %w[in_progress partially_implemented implemented abandoned].freeze
-    COMPLETED_STATUSES = %w[implemented].freeze
+    STARTED_STATUSES = %w[in_progress completed abandoned].freeze
+    COMPLETED_STATUSES = %w[completed].freeze
+    ABANDONED_STATUSES = %w[abandoned].freeze
 
     def show
       government = Government.find(params[:government_id])
       commitments = government.commitments
+
+      if params[:source_type].present?
+        commitments = commitments.joins(:sources).where(sources: { source_type: params[:source_type] }).distinct
+      end
 
       policy_area = nil
       if params[:policy_area_slug].present?
@@ -38,46 +43,65 @@ module Api
         first_change_by_commitment[sc.commitment_id] ||= sc.previous_status
       end
 
-      # For commitments already in a started status without status_change records,
-      # use their earliest evidence date instead of date_promised
-      earliest_evidence_dates = earliest_evidence_dates_for(commitment_ids)
+      # Gather all real-world evidence dates per commitment
+      # (from CommitmentMatch → Bill/StatcanDataset and from CriterionAssessment → Source)
+      all_evidence_dates = evidence_dates_for(commitment_ids)
 
-      # Build sorted events
+      # Build sorted events, tracking effective state per commitment
+      # to avoid double-counting from duplicate status change records
       events = []
+      effective_state = {}
 
       commitment_records.each do |c|
         initial = first_change_by_commitment[c.id] || c.status
+        effective_state[c.id] = initial
         scope_date = c.date_promised || c.created_at.to_date
 
         # Scope always enters on date_promised
-        events << { date: scope_date, delta_scope: 1, delta_started: 0, delta_completed: 0 }
+        events << { date: scope_date, delta_scope: 1, delta_started: 0, delta_completed: 0, delta_abandoned: 0 }
 
-        # Started/completed enter on evidence date (if no status_change drove it)
-        next if first_change_by_commitment.key?(c.id)
-
+        # Add initial state event for all commitments that start in a non-default state
         if STARTED_STATUSES.include?(initial)
-          evidence_date = earliest_evidence_dates[c.id] || scope_date
+          evidence_date = all_evidence_dates[c.id]&.min || scope_date
           events << { date: evidence_date, delta_scope: 0, delta_started: 1,
-                      delta_completed: COMPLETED_STATUSES.include?(initial) ? 1 : 0 }
+                      delta_completed: COMPLETED_STATUSES.include?(initial) ? 1 : 0,
+                      delta_abandoned: ABANDONED_STATUSES.include?(initial) ? 1 : 0 }
         end
       end
 
       status_changes.each do |sc|
-        ds = 0
-        dc = 0
+        # Use effective state to calculate deltas, skipping duplicate transitions
+        current = effective_state[sc.commitment_id]
+        next if sc.new_status == current
 
-        was_started = STARTED_STATUSES.include?(sc.previous_status)
+        was_started = STARTED_STATUSES.include?(current)
         now_started = STARTED_STATUSES.include?(sc.new_status)
+        ds = 0
         ds = 1 if now_started && !was_started
         ds = -1 if !now_started && was_started
 
-        was_completed = COMPLETED_STATUSES.include?(sc.previous_status)
+        was_completed = COMPLETED_STATUSES.include?(current)
         now_completed = COMPLETED_STATUSES.include?(sc.new_status)
+        dc = 0
         dc = 1 if now_completed && !was_completed
         dc = -1 if !now_completed && was_completed
 
-        events << { date: sc.changed_at.to_date, delta_scope: 0,
-                    delta_started: ds, delta_completed: dc }
+        was_abandoned = ABANDONED_STATUSES.include?(current)
+        now_abandoned = ABANDONED_STATUSES.include?(sc.new_status)
+        da = 0
+        da = 1 if now_abandoned && !was_abandoned
+        da = -1 if !now_abandoned && was_abandoned
+
+        # Use the latest real-world evidence date before the job ran,
+        # falling back to the job run date if no evidence dates exist
+        job_date = sc.changed_at.to_date
+        dates = all_evidence_dates[sc.commitment_id] || []
+        event_date = dates.select { |d| d <= job_date }.max || dates.min || job_date
+
+        events << { date: event_date, delta_scope: 0,
+                    delta_started: ds, delta_completed: dc, delta_abandoned: da }
+
+        effective_state[sc.commitment_id] = sc.new_status
       end
 
       events.sort_by! { |e| e[:date] }
@@ -86,24 +110,26 @@ module Api
       scope = 0
       started = 0
       completed = 0
+      abandoned = 0
       series = []
       current_date = nil
 
       events.each do |e|
         if current_date && e[:date] != current_date
-          series << { date: current_date.iso8601, scope: scope, started: started, completed: completed }
+          series << { date: current_date.iso8601, scope: scope, started: started, completed: completed, abandoned: abandoned }
         end
         current_date = e[:date]
         scope += e[:delta_scope]
         started += e[:delta_started]
         completed += e[:delta_completed]
+        abandoned += e[:delta_abandoned]
       end
 
-      series << { date: current_date.iso8601, scope: scope, started: started, completed: completed } if current_date
+      series << { date: current_date.iso8601, scope: scope, started: started, completed: completed, abandoned: abandoned } if current_date
 
       # Also emit today if last event was before today
       if current_date && current_date < Date.current
-        series << { date: Date.current.iso8601, scope: scope, started: started, completed: completed }
+        series << { date: Date.current.iso8601, scope: scope, started: started, completed: completed, abandoned: abandoned }
       end
 
       render json: {
@@ -119,21 +145,28 @@ module Api
 
     private
 
-    def earliest_evidence_dates_for(commitment_ids)
-      # Find the earliest real-world date from each commitment's matched evidence.
-      # For Bills: use the earliest milestone date (first reading, latest_activity, etc.)
-      # For StatcanDatasets: use last_synced_at
-      matches = CommitmentMatch.where(commitment_id: commitment_ids).includes(:matchable)
+    def evidence_dates_for(commitment_ids)
+      result = Hash.new { |h, k| h[k] = [] }
 
-      result = {}
-      matches.each do |cm|
+      # Real-world dates from matched evidence (Bills, StatcanDatasets)
+      CommitmentMatch.where(commitment_id: commitment_ids).includes(:matchable).each do |cm|
         date = evidence_date_for(cm.matchable)
-        next unless date
-
-        existing = result[cm.commitment_id]
-        result[cm.commitment_id] = date if existing.nil? || date < existing
+        result[cm.commitment_id] << date if date
       end
 
+      # Real-world dates from criterion assessment sources
+      CriterionAssessment
+        .joins(criterion: :commitment)
+        .joins("LEFT JOIN sources ON sources.id = criterion_assessments.source_id")
+        .where(criteria: { commitment_id: commitment_ids })
+        .where.not(sources: { date: nil })
+        .pluck("criteria.commitment_id", "sources.date")
+        .each do |cid, date|
+          result[cid] << date
+        end
+
+      # Deduplicate
+      result.each_value(&:uniq!)
       result
     end
 
@@ -146,6 +179,8 @@ module Api
         ].compact.min&.to_date
       when StatcanDataset
         matchable.last_synced_at&.to_date
+      when Entry
+        matchable.published_at&.to_date
       end
     end
   end

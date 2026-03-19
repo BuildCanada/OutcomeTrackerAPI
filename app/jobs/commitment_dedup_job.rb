@@ -2,12 +2,16 @@ class CommitmentDedupJob < ApplicationJob
   queue_as :default
 
   def perform(government)
-    commitments = government.commitments.where.not(status: :abandoned).order(:id)
+    commitments = government.commitments.includes(:lead_department).where.not(status: :abandoned).order(:id)
     return if commitments.size < 2
 
     Rails.logger.info("CommitmentDedupJob: Checking #{commitments.size} commitments for duplicates")
 
-    commitments.each_slice(50) do |batch|
+    commitments.group_by(&:lead_department).each do |department, batch|
+      next if batch.size < 2
+
+      Rails.logger.info("CommitmentDedupJob: Checking #{batch.size} commitments for #{department&.display_name || 'unassigned'}")
+
       finder = CommitmentDedupFinder.create!(record: government)
       finder.extract!(finder.prompt(batch))
 
@@ -37,11 +41,6 @@ class CommitmentDedupJob < ApplicationJob
     duplicate.commitment_departments.where.not(department_id: keep.commitment_departments.select(:department_id)).update_all(commitment_id: keep.id)
     duplicate.commitment_departments.where(department_id: keep.commitment_departments.select(:department_id)).delete_all
 
-    if duplicate.respond_to?(:superseded_by_id)
-      duplicate.update_columns(superseded_by_id: keep.id)
-    end
-
-    duplicate.abandonment_reason = "Duplicate of commitment ##{keep.id}: #{reason}"
-    duplicate.update!(status: :abandoned)
+    duplicate.destroy!
   end
 end

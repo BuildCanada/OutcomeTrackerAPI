@@ -1,5 +1,5 @@
 class Commitment < ApplicationRecord
-  attr_accessor :drift_source, :drift_change_summary, :abandonment_reason
+  attr_accessor :drift_source, :drift_change_summary, :abandonment_reason, :status_changed_at, :status_change_source
 
   belongs_to :government
   belongs_to :policy_area, optional: true
@@ -36,8 +36,7 @@ class Commitment < ApplicationRecord
   enum :status, {
     not_started: 0,
     in_progress: 1,
-    partially_implemented: 2,
-    implemented: 3,
+    completed: 2,
     abandoned: 4
   }
 
@@ -90,14 +89,19 @@ class Commitment < ApplicationRecord
 
   def track_status_change
     previous, current = saved_change_to_status
+    source = status_change_source
+    effective_date = source&.date || status_changed_at || criteria.maximum(:assessed_at) || Date.current
     status_changes.create!(
       previous_status: previous,
       new_status: current,
-      changed_at: Time.current,
-      reason: abandonment_reason
+      changed_at: effective_date,
+      reason: abandonment_reason,
+      source: source
     )
   ensure
     self.abandonment_reason = nil
+    self.status_changed_at = nil
+    self.status_change_source = nil
   end
 
   def tracking_drift?

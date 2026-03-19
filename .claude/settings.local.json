@@ -6,7 +6,8 @@
       "Bash(git push:*)",
       "Bash(curl:*)",
       "Bash(mkdir:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(gem pristine:*)"
     ],
     "deny": []
   }

@@ -22,13 +22,8 @@ class CommitmentStatusDerivationJob < ApplicationJob
       "from #{commitment.status} to #{recommended} (confidence: #{confidence}) — #{reasoning}"
     )
 
+    evidence_date = commitment.criteria.maximum(:assessed_at)
+    commitment.status_changed_at = evidence_date
     commitment.update!(status: recommended)
-
-    commitment.status_changes.create!(
-      previous_status: commitment.status_before_last_save,
-      new_status: recommended,
-      changed_at: Time.current,
-      reason: "AI-derived: #{reasoning}"
-    )
   end
 end

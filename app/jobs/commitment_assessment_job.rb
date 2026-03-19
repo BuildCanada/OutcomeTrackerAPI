@@ -10,6 +10,7 @@ class CommitmentAssessmentJob < ApplicationJob
     return if unassessed_matches.empty?
 
     evidence_items = unassessed_matches.map(&:matchable).compact
+    latest_evidence_date = evidence_items.filter_map { |m| evidence_date_for(m) }.max || Time.current
 
     commitment.criteria.find_each do |criterion|
       assessor = CriterionAssessor.create!(record: criterion)
@@ -23,18 +24,28 @@ class CommitmentAssessmentJob < ApplicationJob
         previous_status: criterion.status,
         new_status: new_status,
         evidence_notes: assessor.assessment["evidence_notes"],
-        assessed_at: Time.current
+        assessed_at: latest_evidence_date
       )
 
       criterion.update!(
         status: new_status,
         evidence_notes: assessor.assessment["evidence_notes"],
-        assessed_at: Time.current
+        assessed_at: latest_evidence_date
       )
     end
 
-    unassessed_matches.update_all(assessed: true, assessed_at: Time.current)
-    commitment.update!(last_assessed_at: Time.current)
+    unassessed_matches.update_all(assessed: true, assessed_at: latest_evidence_date)
+    commitment.update!(last_assessed_at: latest_evidence_date)
     CommitmentStatusDerivationJob.perform_later(commitment)
+  end
+
+  private
+
+  def evidence_date_for(matchable)
+    case matchable
+    when Entry then matchable.published_at
+    when Bill then [matchable.passed_house_first_reading_at, matchable.latest_activity_at].compact.max
+    when StatcanDataset then matchable.last_synced_at
+    end
   end
 end

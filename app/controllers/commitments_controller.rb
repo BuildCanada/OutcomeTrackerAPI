@@ -22,6 +22,10 @@ class CommitmentsController < ApplicationController
       @commitments = @commitments.joins(:lead_commitment_department).joins("INNER JOIN departments AS lead_depts ON lead_depts.id = commitment_departments.department_id").where(lead_depts: { slug: params[:lead_department] })
     end
 
+    if params[:source_type].present?
+      @commitments = @commitments.joins(:sources).where(sources: { source_type: params[:source_type] }).distinct
+    end
+
     @commitments = apply_sorting(@commitments)
     @total_count = @commitments.count
     @commitments = @commitments.limit(page_size).offset(page_offset)
@@ -48,7 +52,7 @@ class CommitmentsController < ApplicationController
   end
 
   def page_size
-    [(params[:per_page] || 50).to_i, 100].min
+    [(params[:per_page] || 50).to_i, 1000].min
   end
 
   def page_offset

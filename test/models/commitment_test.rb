@@ -40,8 +40,8 @@ class CommitmentTest < ActiveSupport::TestCase
     commitment = commitments(:defence_spending)
     assert commitment.in_progress?
 
-    commitment.status = :implemented
-    assert commitment.implemented?
+    commitment.status = :completed
+    assert commitment.completed?
   end
 
   test "belongs to government" do

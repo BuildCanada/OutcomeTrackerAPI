@@ -1,5 +1,6 @@
 class CommitmentStatusChange < ApplicationRecord
   belongs_to :commitment
+  belongs_to :source, optional: true
 
   enum :previous_status, Commitment.statuses, prefix: :previous
   enum :new_status, Commitment.statuses, prefix: :new
