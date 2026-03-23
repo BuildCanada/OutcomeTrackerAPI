@@ -12,7 +12,8 @@ class CriterionAssessor < Chat
     field :assessment, :object, properties: {
       "new_status" => { type: "string", enum: %w[not_assessed met not_met no_longer_applicable] },
       "evidence_notes" => { type: "string", description: "Explanation referencing specific evidence" },
-      "confidence" => { type: "number", description: "0.0 to 1.0" }
+      "confidence" => { type: "number", description: "0.0 to 1.0" },
+      "primary_evidence_index" => { type: "integer", description: "0-based index of the most relevant evidence item used for this assessment, from the MATCHED EVIDENCE list" }
     }
   end
 
@@ -62,21 +63,22 @@ class CriterionAssessor < Chat
     Be CONSERVATIVE. Only mark as "met" if evidence clearly supports it.
     If current status is already "met" and no contradictory evidence, keep it "met".
     Reference specific evidence items in your evidence_notes.
+    Set primary_evidence_index to the 0-based index of the evidence item that most directly supports your assessment.
     PROMPT
   end
 
   private
 
   def format_evidence(items)
-    items.map do |item|
+    items.each_with_index.map do |item, idx|
       case item
       when Entry
-        "ENTRY [#{item.feed&.title}]: #{item.title} (#{item.published_at&.to_date})\n#{item.parsed_markdown&.truncate(1000)}"
+        "[#{idx}] ENTRY [#{item.feed&.title}]: #{item.title} (#{item.published_at&.to_date})\n#{item.parsed_markdown&.truncate(1000)}"
       when Bill
         royal_assent = item.received_royal_assent_at.present? ? "ENACTED (Royal Assent #{item.received_royal_assent_at.to_date})" : "NOT ENACTED"
-        "BILL: #{item.bill_number_formatted} - #{item.short_title}\nStatus: #{royal_assent}\nLatest: #{item.latest_activity} (#{item.latest_activity_at&.to_date})\nHouse: 1R=#{item.passed_house_first_reading_at&.to_date} 2R=#{item.passed_house_second_reading_at&.to_date} 3R=#{item.passed_house_third_reading_at&.to_date}\nSenate: 1R=#{item.passed_senate_first_reading_at&.to_date} 2R=#{item.passed_senate_second_reading_at&.to_date} 3R=#{item.passed_senate_third_reading_at&.to_date}"
+        "[#{idx}] BILL: #{item.bill_number_formatted} - #{item.short_title}\nStatus: #{royal_assent}\nLatest: #{item.latest_activity} (#{item.latest_activity_at&.to_date})\nHouse: 1R=#{item.passed_house_first_reading_at&.to_date} 2R=#{item.passed_house_second_reading_at&.to_date} 3R=#{item.passed_house_third_reading_at&.to_date}\nSenate: 1R=#{item.passed_senate_first_reading_at&.to_date} 2R=#{item.passed_senate_second_reading_at&.to_date} 3R=#{item.passed_senate_third_reading_at&.to_date}"
       when StatcanDataset
-        "STATCAN: #{item.name}\nData: #{item.current_data&.first(3)&.to_json}"
+        "[#{idx}] STATCAN: #{item.name}\nData: #{item.current_data&.first(3)&.to_json}"
       end
     end.join("\n\n---\n\n")
   end

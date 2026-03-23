@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_03_18_204853) do
+ActiveRecord::Schema[8.0].define(version: 2026_03_23_042135) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -179,6 +179,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_18_204853) do
     t.bigint "source_id", null: false
     t.string "section"
     t.string "reference"
+    t.text "relevance_note"
     t.index ["commitment_id"], name: "index_commitment_sources_on_commitment_id"
     t.index ["source_id"], name: "index_commitment_sources_on_source_id"
   end

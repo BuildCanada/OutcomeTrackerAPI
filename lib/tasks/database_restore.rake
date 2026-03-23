@@ -1,17 +1,134 @@
+BACKUP_DIR = Pathname.new("/Users/brendansamek/dev/BuildCanada/tracker/backups")
+
+def db_config_for_env(target_env)
+  if target_env == "development"
+    config = Rails.configuration.database_configuration["development"]
+    {
+      host: config["host"],
+      port: config["port"],
+      username: config["username"],
+      password: config["password"],
+      database: config["database"],
+    }
+  else
+    enc_path = Rails.root.join("config/credentials/#{target_env}.yml.enc")
+    key_path = Rails.root.join("config/credentials/#{target_env}.key")
+
+    unless File.exist?(enc_path)
+      puts "No credentials file found: #{enc_path}"
+      puts "Create with: bin/rails credentials:edit --environment #{target_env}"
+      exit 1
+    end
+
+    creds = Rails.application.encrypted(enc_path, key_path: key_path)
+    db = creds.database
+
+    if db.nil?
+      puts "No database config found in #{target_env} credentials."
+      puts "Expected format:"
+      puts "  database:"
+      puts "    host: your-host"
+      puts "    port: 5432"
+      puts "    username: your-user"
+      puts "    password: your-pass"
+      puts "    database: your-db-name"
+      exit 1
+    end
+
+    {
+      host: db[:host],
+      port: db[:port],
+      username: db[:username],
+      password: db[:password],
+      database: db[:database],
+    }
+  end
+end
+
+def find_latest_backup
+  files = Dir.glob(BACKUP_DIR.join("*.dump"))
+
+  if files.empty?
+    puts "No backup files found in #{BACKUP_DIR}"
+    exit 1
+  end
+
+  files.max_by { |f| File.mtime(f) }
+end
+
+def restore_dump(dump_file, db_config)
+  require "open3"
+
+  pg_restore_cmd = ["pg_restore"]
+  pg_restore_cmd << "--host=#{db_config[:host]}" if db_config[:host]
+  pg_restore_cmd << "--port=#{db_config[:port]}" if db_config[:port]
+  pg_restore_cmd << "--username=#{db_config[:username]}" if db_config[:username]
+  pg_restore_cmd << "--dbname=#{db_config[:database]}"
+  pg_restore_cmd << "--clean"
+  pg_restore_cmd << "--if-exists"
+  pg_restore_cmd << "--schema=public"
+  pg_restore_cmd << "--no-owner"
+  pg_restore_cmd << "--no-privileges"
+  pg_restore_cmd << "--verbose"
+  pg_restore_cmd << dump_file
+
+  env = {}
+  env["PGPASSWORD"] = db_config[:password] if db_config[:password]
+
+  _stdout, stderr, status = Open3.capture3(env, *pg_restore_cmd.map(&:to_s))
+
+  unless status.success?
+    puts "Error: #{stderr}"
+    exit 1
+  end
+end
+
 namespace :db do
+  desc "Restore database to a target environment. Usage: rake db:restore[production] or DUMP_FILE=/path rake db:restore[staging]"
+  task :restore, [:env] => :environment do |_t, args|
+    target_env = args[:env] || Rails.env
+    dump_file = ENV["DUMP_FILE"] || find_latest_backup
+
+    unless File.exist?(dump_file)
+      puts "Dump file not found: #{dump_file}"
+      exit 1
+    end
+
+    db_config = db_config_for_env(target_env)
+
+    puts ""
+    puts "Source:      #{dump_file}"
+    puts "Target DB:   #{db_config[:database]}"
+    puts "Target Host: #{db_config[:host] || 'localhost'}"
+    puts "Target User: #{db_config[:username] || '(default)'}"
+    puts "Environment: #{target_env}"
+    puts ""
+
+    unless ENV["SKIP_CONFIRMATION"] == "true"
+      puts "Are you sure? Type 'yes' to continue:"
+      confirmation = $stdin.gets.chomp
+      unless confirmation.downcase == "yes"
+        puts "Aborted"
+        exit 0
+      end
+    end
+
+    puts "Restoring..."
+    restore_dump(dump_file, db_config)
+    puts "Restore complete!"
+  end
+
   desc "Fetch latest database dump from GitHub artifacts and restore it"
   task fetch_and_restore: :environment do
-    require "net/http"
-    require "json"
     require "fileutils"
+    require "json"
+    require "net/http"
     require "open3"
 
-    # GitHub API configuration
     repo = ENV["GITHUB_REPOSITORY"] || "BuildCanada/OutcomeTrackerAPI"
 
     puts "Fetching latest database dump artifact..."
 
-    # Get list of artifacts
     uri = URI("https://api.github.com/repos/#{repo}/actions/artifacts")
     uri.query = URI.encode_www_form(per_page: 100)
 
@@ -20,7 +137,6 @@ namespace :db do
 
     request = Net::HTTP::Get.new(uri)
     request["Accept"] = "application/vnd.github+json"
-    # No authorization needed for public repositories
     request["X-GitHub-Api-Version"] = "2022-11-28"
 
     response = http.request(request)
@@ -31,8 +147,6 @@ namespace :db do
     end
 
     artifacts = JSON.parse(response.body)["artifacts"]
-
-    # Find the latest database dump artifact
     dump_artifacts = artifacts.select { |a| a["name"].start_with?("database-dump-") }
 
     if dump_artifacts.empty?
@@ -41,27 +155,21 @@ namespace :db do
     end
 
     latest_artifact = dump_artifacts.max_by { |a| DateTime.parse(a["created_at"]) }
-
     puts "Found artifact: #{latest_artifact['name']} (created: #{latest_artifact['created_at']})"
 
-    # Check if gh CLI is installed
     unless system("which gh > /dev/null 2>&1")
       puts "Error: GitHub CLI (gh) is not installed."
       puts "Please install it from: https://cli.github.com/"
       exit 1
     end
 
-    # Create temp directory
     temp_dir = Rails.root.join("tmp", "database_restore")
     FileUtils.mkdir_p(temp_dir)
 
-    # Download the artifact using gh CLI
     puts "Downloading artifact using GitHub CLI..."
     download_cmd = "gh api repos/#{repo}/actions/artifacts/#{latest_artifact['id']}/zip > #{temp_dir}/artifact.zip"
 
-    success = system(download_cmd)
-
-    unless success
+    unless system(download_cmd)
       puts "Error downloading artifact"
       puts "Make sure you're authenticated with: gh auth login"
       exit 1
@@ -70,10 +178,8 @@ namespace :db do
     zip_file = temp_dir.join("artifact.zip")
     puts "Downloaded artifact to #{zip_file}"
 
-    # Extract the zip file
     system("unzip -o #{zip_file} -d #{temp_dir}") or raise "Failed to extract artifact"
 
-    # Find the dump file
     dump_file = Dir.glob(temp_dir.join("*.dump")).first
 
     if dump_file.nil?
@@ -83,92 +189,20 @@ namespace :db do
 
     puts "Found dump file: #{dump_file}"
 
-    # Restore the database
-    Rake::Task["db:restore"].invoke(dump_file)
+    ENV["DUMP_FILE"] = dump_file
+    Rake::Task["db:restore"].invoke
 
-    # Cleanup
     FileUtils.rm_rf(temp_dir)
-
     puts "Database restore complete!"
-  end
-
-  desc "Restore database from a dump file"
-  task :restore, [ :dump_file ] => :environment do |t, args|
-    dump_file = args[:dump_file]
-
-    if dump_file.nil? || !File.exist?(dump_file)
-      puts "Error: Dump file not found: #{dump_file}"
-      exit 1
-    end
-
-    # Confirm before proceeding
-    unless ENV["SKIP_CONFIRMATION"] == "true"
-      puts "\nWARNING: This will restore the database from #{dump_file}"
-      puts "This will DROP and recreate all tables except 'users', 'schema_migrations', and 'ar_internal_metadata'"
-      puts "Are you sure? Type 'yes' to continue:"
-
-      confirmation = STDIN.gets.chomp
-      unless confirmation.downcase == "yes"
-        puts "Aborted"
-        exit 0
-      end
-    end
-
-    # Get database configuration
-    db_config = Rails.configuration.database_configuration[Rails.env]
-
-    # Build pg_restore command
-    pg_restore_cmd = [ "pg_restore" ]
-
-    # Connection parameters
-    pg_restore_cmd << "--host=#{db_config['host']}" if db_config["host"]
-    pg_restore_cmd << "--port=#{db_config['port']}" if db_config["port"]
-    pg_restore_cmd << "--username=#{db_config['username']}" if db_config["username"]
-    pg_restore_cmd << "--dbname=#{db_config['database']}"
-
-    # Restore options
-    pg_restore_cmd << "--clean"        # Clean (drop) database objects before recreating
-    pg_restore_cmd << "--if-exists"    # Use IF EXISTS when dropping objects
-    pg_restore_cmd << "--no-owner"     # Don't set ownership
-    pg_restore_cmd << "--no-privileges" # Don't restore access privileges
-    pg_restore_cmd << "--verbose"       # Verbose output
-
-    # The dump already excludes users, schema_migrations, and ar_internal_metadata
-    # so we don't need to exclude them again
-
-    pg_restore_cmd << dump_file
-
-    # Set PGPASSWORD environment variable if password is provided
-    env = {}
-    env["PGPASSWORD"] = db_config["password"] if db_config["password"]
-
-    puts "Restoring database from #{dump_file}..."
-
-    # Execute pg_restore
-    stdout, stderr, status = Open3.capture3(env, *pg_restore_cmd.map(&:to_s))
-
-    if status.success?
-      puts "Database restored successfully!"
-    else
-      puts "Error restoring database:"
-      puts stderr
-      exit 1
-    end
-
-    # Run any pending migrations that might have been added since the dump
-    puts "Running pending migrations..."
-    Rake::Task["db:migrate"].invoke
   end
 
   desc "List available database dump artifacts"
   task list_dumps: :environment do
-    require "net/http"
     require "json"
+    require "net/http"
 
-    # GitHub API configuration
     repo = ENV["GITHUB_REPOSITORY"] || "BuildCanada/OutcomeTrackerAPI"
 
-    # Get list of artifacts
     uri = URI("https://api.github.com/repos/#{repo}/actions/artifacts")
     uri.query = URI.encode_www_form(per_page: 100)
 
@@ -177,7 +211,6 @@ namespace :db do
 
     request = Net::HTTP::Get.new(uri)
     request["Accept"] = "application/vnd.github+json"
-    # No authorization needed for public repositories
     request["X-GitHub-Api-Version"] = "2022-11-28"
 
     response = http.request(request)
@@ -188,8 +221,6 @@ namespace :db do
     end
 
     artifacts = JSON.parse(response.body)["artifacts"]
-
-    # Find database dump artifacts
     dump_artifacts = artifacts.select { |a| a["name"].start_with?("database-dump-") }
 
     if dump_artifacts.empty?

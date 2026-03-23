@@ -24,7 +24,8 @@ json.government do
 end
 
 json.sources @commitment.commitment_sources.includes(:source) do |cs|
-  json.(cs, :id, :section, :reference, :excerpt)
+  json.(cs, :id, :section, :reference, :excerpt, :relevance_note)
+  json.created_at cs.created_at
   json.source do
     json.(cs.source, :id, :source_type, :title, :url, :date)
   end
@@ -103,4 +104,14 @@ end
 
 json.recent_feed @commitment.feed_items.newest_first.limit(20) do |fi|
   json.(fi, :id, :event_type, :title, :summary, :occurred_at)
+  feedable = fi.feedable
+  feedable_source = feedable.respond_to?(:source) ? feedable.source : nil
+  if feedable_source
+    json.source do
+      json.(feedable_source, :id, :title, :source_type, :url, :date)
+    end
+  end
+  if feedable.respond_to?(:evidence_notes) && feedable.evidence_notes.present?
+    json.evidence_notes feedable.evidence_notes
+  end
 end
