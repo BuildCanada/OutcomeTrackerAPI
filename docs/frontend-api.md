@@ -6,9 +6,182 @@ Backend support for the commitment tracker frontend. Covers the home page (burnd
 
 ## Data Model
 
-### New Tables
+### Commitment (Core Object)
 
-Four new tables support the frontend views. All are populated automatically via ActiveRecord callbacks -- no manual creation needed.
+A commitment is the central entity in the tracker. It represents a single, verifiable government promise.
+
+#### Fields
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `id` | integer | auto | Primary key |
+| `title` | string | yes | Concise, action-oriented title |
+| `description` | text | yes | Precise description of what was promised |
+| `original_text` | text | no | Verbatim source text from the platform/speech/document |
+| `commitment_type` | string enum | yes | Classification (see below) |
+| `status` | string enum | yes | Current progress status (see below) |
+| `date_promised` | date | no | When the commitment was first made |
+| `target_date` | date | no | When it's supposed to be fulfilled |
+| `last_assessed_at` | datetime | no | When progress was last evaluated |
+| `region_code` | string | no | Geographic scope (e.g., `CA`) |
+| `party_code` | string | no | Political party (e.g., `LPC`) |
+| `metadata` | jsonb | no | Flexible data for LLM enrichment |
+| `government_id` | integer FK | yes | Which government made this commitment |
+| `policy_area_id` | integer FK | no | Policy area classification |
+| `parent_id` | integer FK | no | Self-referencing FK for decomposing compound promises |
+
+#### `commitment_type` Enum
+
+| Value | Meaning |
+|---|---|
+| `legislative` | Pass a law, amend legislation, create regulation |
+| `spending` | Allocate money, increase/decrease funding |
+| `procedural` | Change how government operates (process, timeline, reporting) |
+| `institutional` | Create/restructure an agency, board, or office |
+| `diplomatic` | International agreements, treaties, alliances |
+| `outcome` | Measurable outcome goals with specific targets |
+| `aspirational` | Non-measurable goals without specific targets or mechanisms |
+
+#### `status` Enum
+
+| Value | Meaning |
+|---|---|
+| `not_started` | No observable action taken (default) |
+| `in_progress` | Government has begun work but not completed |
+| `completed` | Commitment fulfilled as described |
+| `abandoned` | Government explicitly or implicitly dropped this |
+
+#### Relationships
+
+| Relationship | Via | Description |
+|---|---|---|
+| `government` | `government_id` FK | The government that made this commitment |
+| `policy_area` | `policy_area_id` FK | Policy area classification (optional) |
+| `parent` / `children` | `parent_id` self-reference | Compound promise decomposition |
+| `sources` | `commitment_sources` join | Source documents where the commitment originated |
+| `criteria` | `criteria` table | Success/progress/completion criteria for assessment |
+| `departments` | `commitment_departments` join | Responsible departments (one flagged as lead) |
+| `events` | `commitment_events` table | Timeline entries (announcements and actions) |
+| `status_changes` | `commitment_status_changes` table | Audit log of status transitions |
+| `revisions` | `commitment_revisions` table | Snapshots of previous state (drift tracking) |
+| `feed_items` | `feed_items` table | Denormalized activity feed entries |
+
+---
+
+### Source
+
+A source document that commitments reference. Each source belongs to a government.
+
+#### Fields
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `id` | integer | auto | Primary key |
+| `title` | string | yes | e.g., "Liberal Platform 2025", "Budget 2025" |
+| `source_type` | string enum | yes | Document classification (see below) |
+| `url` | string | no | Link to the document |
+| `date` | date | no | Publication date |
+| `government_id` | integer FK | yes | Which government this source belongs to |
+| `source_type_other` | string | conditional | Required when `source_type` is `other` |
+
+#### `source_type` Enum
+
+`platform_document`, `speech_from_throne`, `budget`, `press_conference`, `mandate_letter`, `debate`, `order_in_council`, `treasury_board_submission`, `gazette_notice`, `committee_report`, `departmental_results_report`, `other`
+
+### CommitmentSource (Join)
+
+Links a commitment to a source document with optional context about where in the document the commitment appears.
+
+| Field | Type | Description |
+|---|---|---|
+| `id` | integer | Primary key |
+| `commitment_id` | integer FK | The commitment |
+| `source_id` | integer FK | The source document |
+| `section` | string | Section within the source (e.g., "Chapter 3: Defence") |
+| `reference` | string | Page or clause reference (e.g., "p. 42") |
+| `excerpt` | text | The relevant passage from the source |
+| `relevance_note` | text | Why this source is relevant to the commitment |
+
+---
+
+### Criterion
+
+Defines what to look for when assessing a commitment. Criteria are grouped by category.
+
+#### Fields
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `id` | integer | auto | Primary key |
+| `commitment_id` | integer FK | yes | The commitment being assessed |
+| `category` | string enum | yes | `completion`, `success`, `progress`, or `failure` |
+| `description` | text | yes | What specifically to look for |
+| `verification_method` | text | no | How to check it (data source, URL to monitor) |
+| `status` | string enum | yes | Current assessment status (see below) |
+| `evidence_notes` | text | no | Why the current status was set |
+| `assessed_at` | datetime | no | When it was last assessed |
+| `position` | integer | no | Display ordering within its category (default: 0) |
+
+#### `category` Enum
+
+| Value | Question it answers |
+|---|---|
+| `completion` | What does done look like? |
+| `success` | Was the intent achieved? |
+| `progress` | What intermediate outcomes indicate movement? |
+| `failure` | What would indicate the commitment has failed? |
+
+#### `status` Enum
+
+`not_assessed` (default), `met`, `not_met`, `no_longer_applicable`
+
+### CriterionAssessment (Audit Trail)
+
+Every time a criterion's status changes, an assessment record captures the transition.
+
+| Field | Type | Description |
+|---|---|---|
+| `id` | integer | Primary key |
+| `criterion_id` | integer FK | Which criterion changed |
+| `previous_status` | string enum | Status before the change |
+| `new_status` | string enum | Status after the change |
+| `source_id` | integer FK (optional) | Document that triggered the assessment |
+| `evidence_notes` | text | Explanation of why the status changed |
+| `assessed_at` | datetime | When the assessment was made |
+
+---
+
+### CommitmentDepartment (Join)
+
+Links commitments to responsible departments. One department per commitment can be flagged as lead.
+
+| Field | Type | Description |
+|---|---|---|
+| `commitment_id` | integer FK | |
+| `department_id` | integer FK | |
+| `is_lead` | boolean | `true` for the primary responsible department (default: `false`) |
+
+Unique index on `[commitment_id, department_id]`.
+
+---
+
+### PolicyArea
+
+Reference table for classifying commitments by policy domain.
+
+| Field | Type | Description |
+|---|---|---|
+| `id` | integer | Primary key |
+| `name` | string | Display name (e.g., "Defence and Security") |
+| `slug` | string | URL-safe identifier |
+| `description` | text | Optional description |
+| `position` | integer | Display ordering (default: 0) |
+
+---
+
+### Supporting Tables (Frontend Views)
+
+Four additional tables support the frontend views. All are populated automatically via ActiveRecord callbacks -- no manual creation needed.
 
 #### `commitment_status_changes`
 
