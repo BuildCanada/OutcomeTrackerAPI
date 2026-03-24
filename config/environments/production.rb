@@ -1,4 +1,5 @@
 require "active_support/core_ext/integer/time"
+require Rails.root.join("lib/env_or_credentials")
 
 Rails.application.configure do
   # Settings specified here will take precedence over those in config/application.rb.
@@ -61,9 +62,9 @@ Rails.application.configure do
 
   # Specify outgoing SMTP server. Remember to add smtp/* credentials via rails credentials:edit.
   config.action_mailer.smtp_settings = {
-    user_name: Rails.application.credentials.dig(:smtp, :user_name),
-    password: Rails.application.credentials.dig(:smtp, :password),
-    address: Rails.application.credentials.dig(:smtp, :address),
+    user_name: EnvOrCredentials.fetch("SMTP_USER_NAME", [ :smtp, :user_name ]),
+    password: EnvOrCredentials.fetch("SMTP_PASSWORD", [ :smtp, :password ]),
+    address: EnvOrCredentials.fetch("SMTP_ADDRESS", [ :smtp, :address ]),
     port: 587,
     authentication: :plain,
     enable_starttls_auto: true,
