@@ -228,7 +228,7 @@ class SourceDocumentProcessorJob < ApplicationJob
     created_ids = created_commitments.values.map(&:id)
     active_commitments = Commitment.where(government: source_document.government)
                                    .where.not(id: created_ids)
-                                   .where.not(status: :abandoned)
+                                   .where.not(status: :broken)
 
     return if active_commitments.empty?
 
@@ -258,7 +258,7 @@ class SourceDocumentProcessorJob < ApplicationJob
       next unless commitment
 
       commitment.abandonment_reason = entry["reason"]
-      commitment.update!(status: :abandoned)
+      commitment.update!(status: :broken)
     end
   end
 end

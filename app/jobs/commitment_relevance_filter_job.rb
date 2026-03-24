@@ -31,7 +31,7 @@ class CommitmentRelevanceFilterJob < ApplicationJob
   private
 
   def active_commitments_for(matchable)
-    scope = Commitment.where.not(status: :abandoned)
+    scope = Commitment.where.not(status: :broken)
 
     if matchable.respond_to?(:government_id) && matchable.government_id.present?
       scope = scope.where(government_id: matchable.government_id)

@@ -1,8 +1,8 @@
 module Api
   class BurndownController < ApplicationController
-    STARTED_STATUSES = %w[in_progress completed abandoned].freeze
+    STARTED_STATUSES = %w[in_progress completed broken].freeze
     COMPLETED_STATUSES = %w[completed].freeze
-    ABANDONED_STATUSES = %w[abandoned].freeze
+    ABANDONED_STATUSES = %w[broken].freeze
 
     def show
       government = Government.find(params[:government_id])
@@ -58,14 +58,14 @@ module Api
         scope_date = c.date_promised || c.created_at.to_date
 
         # Scope always enters on date_promised
-        events << { date: scope_date, delta_scope: 1, delta_started: 0, delta_completed: 0, delta_abandoned: 0 }
+        events << { date: scope_date, delta_scope: 1, delta_started: 0, delta_completed: 0, delta_broken: 0 }
 
         # Add initial state event for all commitments that start in a non-default state
         if STARTED_STATUSES.include?(initial)
           evidence_date = all_evidence_dates[c.id]&.min || scope_date
           events << { date: evidence_date, delta_scope: 0, delta_started: 1,
                       delta_completed: COMPLETED_STATUSES.include?(initial) ? 1 : 0,
-                      delta_abandoned: ABANDONED_STATUSES.include?(initial) ? 1 : 0 }
+                      delta_broken: ABANDONED_STATUSES.include?(initial) ? 1 : 0 }
         end
       end
 
@@ -86,11 +86,11 @@ module Api
         dc = 1 if now_completed && !was_completed
         dc = -1 if !now_completed && was_completed
 
-        was_abandoned = ABANDONED_STATUSES.include?(current)
-        now_abandoned = ABANDONED_STATUSES.include?(sc.new_status)
+        was_broken = ABANDONED_STATUSES.include?(current)
+        now_broken = ABANDONED_STATUSES.include?(sc.new_status)
         da = 0
-        da = 1 if now_abandoned && !was_abandoned
-        da = -1 if !now_abandoned && was_abandoned
+        da = 1 if now_broken && !was_broken
+        da = -1 if !now_broken && was_broken
 
         # Use the latest real-world evidence date before the job ran,
         # falling back to the job run date if no evidence dates exist
@@ -99,7 +99,7 @@ module Api
         event_date = dates.select { |d| d <= job_date }.max || dates.min || job_date
 
         events << { date: event_date, delta_scope: 0,
-                    delta_started: ds, delta_completed: dc, delta_abandoned: da }
+                    delta_started: ds, delta_completed: dc, delta_broken: da }
 
         effective_state[sc.commitment_id] = sc.new_status
       end
@@ -110,26 +110,26 @@ module Api
       scope = 0
       started = 0
       completed = 0
-      abandoned = 0
+      broken = 0
       series = []
       current_date = nil
 
       events.each do |e|
         if current_date && e[:date] != current_date
-          series << { date: current_date.iso8601, scope: scope, started: started, completed: completed, abandoned: abandoned }
+          series << { date: current_date.iso8601, scope: scope, started: started, completed: completed, broken: broken }
         end
         current_date = e[:date]
         scope += e[:delta_scope]
         started += e[:delta_started]
         completed += e[:delta_completed]
-        abandoned += e[:delta_abandoned]
+        broken += e[:delta_broken]
       end
 
-      series << { date: current_date.iso8601, scope: scope, started: started, completed: completed, abandoned: abandoned } if current_date
+      series << { date: current_date.iso8601, scope: scope, started: started, completed: completed, broken: broken } if current_date
 
       # Also emit today if last event was before today
       if current_date && current_date < Date.current
-        series << { date: Date.current.iso8601, scope: scope, started: started, completed: completed, abandoned: abandoned }
+        series << { date: Date.current.iso8601, scope: scope, started: started, completed: completed, broken: broken }
       end
 
       render json: {

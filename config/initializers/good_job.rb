@@ -52,6 +52,12 @@ Rails.application.configure do
       class: "MinistersSyncJob",
       description: "Syncs ministers, department mappings, contact info, and photos from ourcommons.ca",
       enabled_by_default: -> { Rails.env.production? }
+    },
+    agent_weekly_scan: {
+      cron: "0 2 * * 0", # Sundays at 2 AM
+      class: "AgentWeeklyScanJob",
+      description: "Proactive weekly scan — evaluates all commitments for new evidence",
+      enabled_by_default: -> { Rails.env.production? }
     }
   }
 
@@ -64,6 +70,7 @@ Rails.application.configure do
 
   # Queue configuration
   config.good_job.queues = "*"
+  config.good_job.max_threads = 5
 
 
   # Smaller batch size for better performance

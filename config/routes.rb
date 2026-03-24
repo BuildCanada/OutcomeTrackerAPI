@@ -34,6 +34,20 @@ Rails.application.routes.draw do
   namespace :api do
     get "burndown/:government_id", to: "burndown#show", as: :burndown
     get "dashboard/:government_id/at_a_glance", to: "dashboard#at_a_glance", as: :at_a_glance
+
+    namespace :agent do
+      resources :commitments, only: [] do
+        member do
+          patch :status
+        end
+      end
+      resources :criteria, only: [ :update ]
+      resources :commitment_matches, only: [ :create ]
+      resources :commitment_events, only: [ :create ]
+      resources :sources, only: [ :create ]
+      resources :evaluation_runs, only: [ :create ]
+      post "pages/fetch", to: "pages#fetch"
+    end
   end
 
   namespace :admin do

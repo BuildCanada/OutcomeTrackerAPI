@@ -9,13 +9,47 @@ class Bill < ApplicationRecord
     GOVERNMENT_BILL_TYPES.include?(data&.dig("BillTypeEn"))
   end
 
+  STAGE_COLUMNS = %w[
+    passed_house_first_reading_at passed_house_second_reading_at passed_house_third_reading_at
+    passed_senate_first_reading_at passed_senate_second_reading_at passed_senate_third_reading_at
+    received_royal_assent_at
+  ].freeze
+
   def self.sync_all
     api_bills_array = BillsFetcher.fetch("https://www.parl.ca/legisinfo/en/bills/json")
     bills_attributes = api_bills_array.map { |api_data| attributes_from_api(api_data) }
 
     return if bills_attributes.empty?
 
+    # Snapshot current stage dates for government bills before upsert
+    existing_stages = government_bills
+      .pluck(:bill_id, *STAGE_COLUMNS)
+      .index_by(&:first)
+
     upsert_all(bills_attributes, unique_by: [ :bill_id ])
+
+    # Detect stage changes and trigger agent evaluation for linked commitments
+    detect_stage_changes(existing_stages)
+  end
+
+  def self.detect_stage_changes(existing_stages)
+    government_bills.find_each do |bill|
+      old = existing_stages[bill.bill_id]
+      next unless old # New bill — will be caught by weekly scan
+
+      old_stages = old[1..]
+      new_stages = STAGE_COLUMNS.map { |col| bill.send(col) }
+
+      next if old_stages == new_stages
+
+      # Stage changed — trigger agent for all linked commitments
+      bill.commitment_matches.each do |match|
+        AgentEvaluateCommitmentJob.perform_later(
+          match.commitment,
+          trigger_type: "bill_stage_change"
+        )
+      end
+    end
   end
 
   def self.attributes_from_api(api_data)

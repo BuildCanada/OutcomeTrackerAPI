@@ -1,5 +1,8 @@
 class Commitment < ApplicationRecord
-  attr_accessor :drift_source, :drift_change_summary, :abandonment_reason, :status_changed_at, :status_change_source
+  attr_accessor :drift_source, :drift_change_summary, :status_change_reason, :status_changed_at, :status_change_source
+
+  alias_method :abandonment_reason, :status_change_reason
+  alias_method :abandonment_reason=, :status_change_reason=
 
   belongs_to :government
   belongs_to :policy_area, optional: true
@@ -37,7 +40,7 @@ class Commitment < ApplicationRecord
     not_started: 0,
     in_progress: 1,
     completed: 2,
-    abandoned: 4
+    broken: 4
   }
 
   validates :title, presence: true
@@ -55,10 +58,6 @@ class Commitment < ApplicationRecord
 
     generator = CriteriaGenerator.create!(record: self, model_id: "gemini-3.1-pro-preview")
     generator.generate_criteria!
-  end
-
-  def derive_status_from_criteria!
-    CommitmentStatusDerivationJob.perform_later(self)
   end
 
   def self.ransackable_attributes(auth_object = nil)
@@ -90,16 +89,16 @@ class Commitment < ApplicationRecord
   def track_status_change
     previous, current = saved_change_to_status
     source = status_change_source
-    effective_date = source&.date || status_changed_at || criteria.maximum(:assessed_at) || Date.current
+    effective_date = status_changed_at || source&.date || criteria.maximum(:assessed_at) || Date.current
     status_changes.create!(
       previous_status: previous,
       new_status: current,
       changed_at: effective_date,
-      reason: abandonment_reason,
+      reason: status_change_reason,
       source: source
     )
   ensure
-    self.abandonment_reason = nil
+    self.status_change_reason = nil
     self.status_changed_at = nil
     self.status_change_source = nil
   end

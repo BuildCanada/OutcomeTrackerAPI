@@ -2,7 +2,7 @@ class CommitmentDedupJob < ApplicationJob
   queue_as :default
 
   def perform(government)
-    commitments = government.commitments.includes(:lead_department).where.not(status: :abandoned).order(:id)
+    commitments = government.commitments.includes(:lead_department).where.not(status: :broken).order(:id)
     return if commitments.size < 2
 
     Rails.logger.info("CommitmentDedupJob: Checking #{commitments.size} commitments for duplicates")

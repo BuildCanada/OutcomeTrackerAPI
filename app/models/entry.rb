@@ -62,8 +62,7 @@ class Entry < ApplicationRecord
     if is_index
       create_subentries! if parent.nil? # only create subentries if this is the top-level entry
     else
-      extract_activities!
-      filter_commitment_relevance!
+      AgentProcessEntryJob.perform_later(self)
     end
   rescue => e
     Rails.logger.error("Error fetching data for entry #{id}: #{e.message}")

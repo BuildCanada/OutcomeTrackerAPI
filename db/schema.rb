@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_03_23_042135) do
+ActiveRecord::Schema[8.0].define(version: 2026_03_24_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -302,6 +302,24 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_23_042135) do
     t.index ["feed_id"], name: "index_entries_on_feed_id"
     t.index ["government_id"], name: "index_entries_on_government_id"
     t.index ["parent_id"], name: "index_entries_on_parent_id"
+  end
+
+  create_table "evaluation_runs", force: :cascade do |t|
+    t.bigint "commitment_id", null: false
+    t.string "agent_run_id"
+    t.string "trigger_type", null: false
+    t.string "previous_status"
+    t.string "new_status"
+    t.text "reasoning", null: false
+    t.integer "criteria_assessed", default: 0, null: false
+    t.integer "evidence_found", default: 0, null: false
+    t.jsonb "search_queries", default: []
+    t.float "duration_seconds"
+    t.datetime "created_at", null: false
+    t.index ["agent_run_id"], name: "index_evaluation_runs_on_agent_run_id"
+    t.index ["commitment_id", "created_at"], name: "index_evaluation_runs_on_commitment_id_and_created_at"
+    t.index ["commitment_id"], name: "index_evaluation_runs_on_commitment_id"
+    t.index ["trigger_type"], name: "index_evaluation_runs_on_trigger_type"
   end
 
   create_table "evidences", force: :cascade do |t|
@@ -707,6 +725,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_23_042135) do
   add_foreign_key "entries", "entries", column: "parent_id"
   add_foreign_key "entries", "feeds"
   add_foreign_key "entries", "governments"
+  add_foreign_key "evaluation_runs", "commitments"
   add_foreign_key "evidences", "activities"
   add_foreign_key "evidences", "promises"
   add_foreign_key "evidences", "users", column: "linked_by_id"

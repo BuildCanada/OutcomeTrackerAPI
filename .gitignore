@@ -38,3 +38,10 @@ node_modules/
 
 
 /config/credentials/production.key
+
+# Local development/runtime artifacts
+/.foreman
+/vendor/bundle/
+/agent/logs/
+/agent/**/__pycache__/
+/agent/src/*.egg-info/
