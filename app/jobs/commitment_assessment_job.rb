@@ -42,7 +42,6 @@ class CommitmentAssessmentJob < ApplicationJob
 
     unassessed_matches.update_all(assessed: true, assessed_at: latest_evidence_date)
     commitment.update!(last_assessed_at: latest_evidence_date)
-    CommitmentStatusDerivationJob.perform_later(commitment)
   end
 
   private

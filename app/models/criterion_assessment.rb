@@ -10,7 +10,6 @@ class CriterionAssessment < ApplicationRecord
   validates :assessed_at, presence: true
 
   after_create :create_feed_item
-  after_create :trigger_status_derivation
 
   private
 
@@ -27,7 +26,4 @@ class CriterionAssessment < ApplicationRecord
     )
   end
 
-  def trigger_status_derivation
-    CommitmentStatusDerivationJob.perform_later(criterion.commitment)
-  end
 end

@@ -13,21 +13,6 @@ namespace :matching do
     end
 
     puts "Enqueued assessment for #{count} commitments"
-    puts "After jobs complete, run: rake matching:rederive_statuses"
-  end
-
-  desc "Re-derive statuses for all non-abandoned commitments"
-  task rederive_statuses: :environment do
-    count = 0
-    Commitment.where.not(status: :abandoned)
-      .where.not(criteria_generated_at: nil)
-      .find_each do |commitment|
-        CommitmentStatusDerivationJob.perform_later(commitment)
-        count += 1
-      end
-
-    puts "Enqueued status derivation for #{count} commitments"
-    puts "After jobs complete, run: rake matching:status_report"
   end
 
   desc "Report on commitment statuses and evidence quality"
@@ -127,7 +112,6 @@ namespace :matching do
     puts "\nJobs are enqueued. The full pipeline is:"
     puts "  1. rake matching:all_gaps        (done — jobs running)"
     puts "  2. rake matching:reassess         (run after gap jobs finish)"
-    puts "  3. rake matching:rederive_statuses (run after assessment jobs finish)"
-    puts "  4. rake matching:status_report    (run after derivation jobs finish)"
+    puts "  3. rake matching:status_report    (run after assessment jobs finish)"
   end
 end
