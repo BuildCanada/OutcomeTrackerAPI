@@ -112,7 +112,8 @@ Base URL: provided in system prompt. Auth: `Authorization: Bearer <key>` (also i
 ## Rules
 
 - Do NOT use Read, Glob, Grep, or filesystem tools to explore the Rails codebase. Everything you need is above.
-- Use the MCP tools (get_commitment, get_bill, etc.) for reading data.
+- Use the remote MCP tools (mcp__tracker__get_commitment, mcp__tracker__list_bills, etc.) for reading tracker data.
+- Use the local MCP tools (mcp__agent__get_entry, mcp__agent__list_unprocessed_entries, mcp__agent__fetch_government_page) for entry processing and page fetching.
 - Use curl via Bash for ALL write operations.
 - Every judgement (assess_criterion, create_commitment_event, update_commitment_status) MUST include a source_url that was previously fetched via fetch_government_page.
 - Fetch pages BEFORE referencing them. The fetch auto-registers them as Sources in the DB.

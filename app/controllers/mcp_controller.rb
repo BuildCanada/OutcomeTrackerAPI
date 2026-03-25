@@ -3,6 +3,15 @@ class McpController < ActionController::API
   # serialization is handled by the existing controllers and Jbuilder views.
   TOOLS_CONFIG = [
     {
+      name: "list_policy_areas",
+      path: "/policy_areas",
+      description: <<~DESC.strip,
+        List all policy areas (e.g. Defence, Healthcare, Economy) with their slugs.
+        Use this first to discover valid policy_area slugs for filtering other tools.
+        Returns: id, name, slug, description, position. There are ~16 policy areas.
+      DESC
+    },
+    {
       name: "list_commitments",
       path: "/commitments",
       description: <<~DESC.strip,
@@ -11,15 +20,16 @@ class McpController < ActionController::API
         (specific, measurable outcomes with status tracking) → Evidence (bills, events, sources).
         Each commitment has a status (not_started/in_progress/completed/broken), a type,
         a policy area, and a lead department. Returns paginated results with
-        meta { total_count, page, per_page }.
-        Use get_commitment_summary to discover valid policy area slugs.
+        criteria_count, matches_count, and meta { total_count, page, per_page }.
+        Use list_policy_areas to discover valid policy_area slugs.
       DESC
       properties: {
         q: { type: "string", description: "Full-text search on title and description" },
         status: { type: "string", enum: %w[not_started in_progress completed broken], description: "Filter by commitment status" },
-        policy_area: { type: "string", description: "Policy area slug (e.g. 'defence', 'healthcare', 'economy')" },
+        policy_area: { type: "string", description: "Policy area slug — use list_policy_areas to see valid values" },
         commitment_type: { type: "string", enum: %w[legislative spending procedural institutional diplomatic aspirational outcome], description: "Filter by commitment type" },
         department: { type: "string", description: "Department slug (e.g. 'finance-canada')" },
+        stale_days: { type: "integer", description: "Only commitments not assessed in this many days" },
         sort: { type: "string", enum: %w[title date_promised last_assessed_at status], description: "Sort field (default: created_at desc)" },
         direction: { type: "string", enum: %w[asc desc], description: "Sort direction (default: desc)" },
         page: { type: "integer", description: "Page number (default: 1)" },
@@ -32,8 +42,8 @@ class McpController < ActionController::API
       description: <<~DESC.strip,
         Get full details for a single commitment. Returns all nested data: sources
         (original government documents), criteria (completion/success/progress/failure
-        with assessment history), departments, timeline events, status_history,
-        and recent_feed items.
+        with assessment history), matches (linked bills and entries with relevance scores),
+        departments, timeline events, status_history, and recent_feed items.
       DESC
       properties: { id: { type: "integer", description: "The commitment ID" } },
       required: [ "id" ]
@@ -68,16 +78,22 @@ class McpController < ActionController::API
         List Canadian parliamentary bills (45th Parliament). Returns bill_number_formatted
         (e.g. 'C-2', 'S-201'), short_title, long_title, latest_activity, and all stage
         dates tracking progress through Parliament: House 1st/2nd/3rd reading, Senate
-        1st/2nd/3rd reading, and Royal Assent.
+        1st/2nd/3rd reading, and Royal Assent. Filter to government bills to exclude
+        private members' bills.
       DESC
+      properties: {
+        parliament_number: { type: "integer", description: "Filter by parliament (e.g. 45 for current)" },
+        government_bills: { type: "string", enum: %w[true], description: "Set to 'true' to only return House/Senate Government Bills" }
+      }
     },
     {
       name: "get_bill",
       path: "/bills/:id",
       description: <<~DESC.strip,
-        Get full details for a parliamentary bill. Returns all fields including stage
-        dates and the complete raw data from the Parliament of Canada API (sponsor,
-        type, session info).
+        Get full details for a parliamentary bill. Returns all stage dates, the complete
+        raw data from the Parliament of Canada API (sponsor, type, session info), and
+        linked_commitments — which government commitments this bill implements, with
+        relevance scores and reasoning.
       DESC
       properties: { id: { type: "integer", description: "The bill database ID" } },
       required: [ "id" ]

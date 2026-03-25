@@ -26,15 +26,7 @@ from agent.prompts import (
     SYSTEM_PROMPT,
     WEEKLY_SCAN_PROMPT,
 )
-from agent.tools.db_read import (
-    get_bill,
-    get_bills_for_parliament,
-    get_commitment,
-    get_commitment_sources,
-    get_entry,
-    list_commitments,
-    list_unprocessed_entries,
-)
+from agent.tools.db_read import get_entry, list_unprocessed_entries
 from agent.tools.web_search import fetch_government_page
 from agent.tools.rails_write import register_source
 
@@ -63,58 +55,7 @@ def _tool_error(e: Exception, tool_name: str, args: dict) -> dict[str, Any]:
     }
 
 
-# ── Read-only DB tools (via MCP) ───────────────────────────────────────────
-
-@tool(
-    "get_commitment",
-    "Fetch a commitment with its criteria, matches, events, linked bills, departments, and source documents.",
-    {"commitment_id": int},
-    annotations=ToolAnnotations(readOnlyHint=True),
-)
-async def get_commitment_tool(args: dict[str, Any]) -> dict[str, Any]:
-    _tool_log("get_commitment", f"Loading commitment {args['commitment_id']}")
-    try:
-        return _tool_result(get_commitment(args["commitment_id"]), "get_commitment")
-    except Exception as e:
-        return _tool_error(e, "get_commitment", args)
-
-
-@tool(
-    "list_commitments",
-    "List commitments with optional filters. Params: status, policy_area, commitment_type, stale_days, limit.",
-    {
-        "type": "object",
-        "properties": {
-            "status": {"type": "string", "enum": ["not_started", "in_progress", "completed", "broken"]},
-            "policy_area": {"type": "string", "description": "Policy area slug"},
-            "commitment_type": {"type": "string"},
-            "stale_days": {"type": "integer"},
-            "limit": {"type": "integer"},
-        },
-    },
-    annotations=ToolAnnotations(readOnlyHint=True),
-)
-async def list_commitments_tool(args: dict[str, Any]) -> dict[str, Any]:
-    _tool_log("list_commitments", f"filters: {args}")
-    try:
-        return _tool_result(list_commitments(**args), "list_commitments")
-    except Exception as e:
-        return _tool_error(e, "list_commitments", args)
-
-
-@tool(
-    "get_bill",
-    "Fetch a bill with all stage dates (House/Senate readings, Royal Assent) and linked commitments.",
-    {"bill_id": int},
-    annotations=ToolAnnotations(readOnlyHint=True),
-)
-async def get_bill_tool(args: dict[str, Any]) -> dict[str, Any]:
-    _tool_log("get_bill", f"Loading bill {args['bill_id']}")
-    try:
-        return _tool_result(get_bill(args["bill_id"]), "get_bill")
-    except Exception as e:
-        return _tool_error(e, "get_bill", args)
-
+# ── Agent-local tools (not served by the remote MCP server) ────────────────
 
 @tool(
     "get_entry",
@@ -142,35 +83,6 @@ async def list_unprocessed_entries_tool(args: dict[str, Any]) -> dict[str, Any]:
         return _tool_result(list_unprocessed_entries(**args), "list_unprocessed_entries")
     except Exception as e:
         return _tool_error(e, "list_unprocessed_entries", args)
-
-
-@tool(
-    "get_commitment_sources",
-    "Get the source documents (platform, Speech from the Throne, budget) for a commitment. Use this to determine where a commitment originated for the budget evidence rule.",
-    {"commitment_id": int},
-    annotations=ToolAnnotations(readOnlyHint=True),
-)
-async def get_commitment_sources_tool(args: dict[str, Any]) -> dict[str, Any]:
-    _tool_log("get_commitment_sources", f"commitment {args['commitment_id']}")
-    try:
-        return _tool_result(get_commitment_sources(args["commitment_id"]), "get_commitment_sources")
-    except Exception as e:
-        return _tool_error(e, "get_commitment_sources", args)
-
-
-@tool(
-    "get_bills_for_parliament",
-    "Get all government bills for a parliament session with their stage dates.",
-    {"type": "object", "properties": {"parliament_number": {"type": "integer"}}},
-    annotations=ToolAnnotations(readOnlyHint=True),
-)
-async def get_bills_for_parliament_tool(args: dict[str, Any]) -> dict[str, Any]:
-    pn = args.get("parliament_number", 45)
-    _tool_log("get_bills_for_parliament", f"parliament {pn}")
-    try:
-        return _tool_result(get_bills_for_parliament(pn), "get_bills_for_parliament")
-    except Exception as e:
-        return _tool_error(e, "get_bills_for_parliament", args)
 
 
 @tool(
@@ -225,26 +137,21 @@ async def fetch_government_page_tool(args: dict[str, Any]) -> dict[str, Any]:
         return _tool_error(e, "fetch_government_page", args)
 
 
-# ── MCP Server (read tools + fetch only) ───────────────────────────────────
+# ── MCP Servers ────────────────────────────────────────────────────────────
 
-ALL_TOOLS = [
-    get_commitment_tool,
-    list_commitments_tool,
-    get_bill_tool,
+# Agent-local tools that need direct DB access or are side-effecting.
+# Read-only tracker tools are served by the remote MCP server (POST /mcp).
+LOCAL_TOOLS = [
     get_entry_tool,
     list_unprocessed_entries_tool,
-    get_commitment_sources_tool,
-    get_bills_for_parliament_tool,
     fetch_government_page_tool,
 ]
 
-tracker_server = create_sdk_mcp_server(
-    name="tracker",
+agent_server = create_sdk_mcp_server(
+    name="agent",
     version="1.0.0",
-    tools=ALL_TOOLS,
+    tools=LOCAL_TOOLS,
 )
-
-ALLOWED_TOOLS = [f"mcp__tracker__{t.name}" for t in ALL_TOOLS] + ["Bash", "WebSearch"]
 
 
 # ── Agent runner ────────────────────────────────────────────────────────────
@@ -263,11 +170,31 @@ def _build_options() -> ClaudeAgentOptions:
 
     model = os.environ.get("AGENT_MODEL", "claude-sonnet-4-6")
 
+    # Remote MCP server for read-only tracker tools (commitments, departments,
+    # bills, promises, ministers, feed items, dashboard, burndown).
+    # Agent-local MCP server for entry tools and fetch_government_page.
+    tracker_url = os.environ.get("MCP_SERVER_URL", f"{rails_url}/mcp")
+
+    remote_tools = [
+        "mcp__tracker__list_policy_areas",
+        "mcp__tracker__list_commitments", "mcp__tracker__get_commitment",
+        "mcp__tracker__list_departments", "mcp__tracker__get_department",
+        "mcp__tracker__list_promises", "mcp__tracker__get_promise",
+        "mcp__tracker__list_bills", "mcp__tracker__get_bill",
+        "mcp__tracker__list_ministers", "mcp__tracker__list_activity",
+        "mcp__tracker__get_commitment_summary", "mcp__tracker__get_commitment_progress",
+    ]
+    local_tools = [f"mcp__agent__{t.name}" for t in LOCAL_TOOLS]
+    allowed_tools = remote_tools + local_tools + ["Bash", "WebSearch"]
+
     return ClaudeAgentOptions(
         model=model,
         system_prompt=SYSTEM_PROMPT + api_context,
-        mcp_servers={"tracker": tracker_server},
-        allowed_tools=ALLOWED_TOOLS,
+        mcp_servers={
+            "tracker": {"type": "url", "url": tracker_url},
+            "agent": agent_server,
+        },
+        allowed_tools=allowed_tools,
         permission_mode="bypassPermissions",
         cwd=str(pathlib.Path(__file__).resolve().parent.parent.parent),  # agent/ dir where CLAUDE.md lives
         setting_sources=["project"],

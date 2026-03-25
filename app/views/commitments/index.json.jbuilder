@@ -1,5 +1,7 @@
 json.commitments @commitments do |commitment|
-  json.(commitment, :id, :title, :description, :commitment_type, :status, :date_promised, :target_date, :region_code, :party_code)
+  json.(commitment, :id, :title, :description, :commitment_type, :status, :date_promised, :target_date, :last_assessed_at, :region_code, :party_code)
+  json.criteria_count commitment.criteria.size
+  json.matches_count commitment.commitment_matches.size
 
   if commitment.policy_area
     json.policy_area do

@@ -1,6 +1,6 @@
 class CommitmentsController < ApplicationController
   def index
-    @commitments = Commitment.includes(:policy_area, :lead_department)
+    @commitments = Commitment.includes(:policy_area, :lead_department, :criteria, :commitment_matches)
 
     @commitments = @commitments.search(params[:q]) if params[:q].present?
     @commitments = @commitments.where(policy_area_id: params[:policy_area_id]) if params[:policy_area_id].present?
@@ -26,6 +26,10 @@ class CommitmentsController < ApplicationController
       @commitments = @commitments.joins(:sources).where(sources: { source_type: params[:source_type] }).distinct
     end
 
+    if params[:stale_days].present?
+      @commitments = @commitments.where("commitments.last_assessed_at IS NULL OR commitments.last_assessed_at < ?", params[:stale_days].to_i.days.ago)
+    end
+
     @commitments = apply_sorting(@commitments)
     @total_count = @commitments.count
     @commitments = @commitments.limit(page_size).offset(page_offset)
@@ -41,7 +45,12 @@ class CommitmentsController < ApplicationController
     case params[:sort]
     when "title" then scope.order(title: sort_direction)
     when "date_promised" then scope.order(date_promised: sort_direction)
-    when "last_assessed_at" then scope.order(last_assessed_at: sort_direction)
+    when "last_assessed_at"
+      if sort_direction == :asc
+        scope.order(Arel.sql("commitments.last_assessed_at ASC NULLS FIRST"))
+      else
+        scope.order(Arel.sql("commitments.last_assessed_at DESC NULLS LAST"))
+      end
     when "status" then scope.order(status: sort_direction)
     else scope.order(created_at: :desc)
     end

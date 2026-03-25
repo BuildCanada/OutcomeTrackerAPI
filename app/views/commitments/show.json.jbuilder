@@ -102,6 +102,18 @@ json.status_history @commitment.status_changes.includes(:source).order(:changed_
   end
 end
 
+json.matches @commitment.commitment_matches.includes(:matchable) do |cm|
+  json.(cm, :id, :matchable_type, :matchable_id, :relevance_score, :relevance_reasoning, :matched_at, :assessed)
+  case cm.matchable
+  when Bill
+    json.matchable_title cm.matchable.bill_number_formatted
+    json.matchable_detail cm.matchable.short_title
+  when Entry
+    json.matchable_title cm.matchable.title
+    json.matchable_detail cm.matchable.url
+  end
+end
+
 json.recent_feed @commitment.feed_items.newest_first.limit(20) do |fi|
   json.(fi, :id, :event_type, :title, :summary, :occurred_at)
   feedable = fi.feedable

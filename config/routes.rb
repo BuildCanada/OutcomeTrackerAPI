@@ -26,6 +26,7 @@ Rails.application.routes.draw do
     resources :feed_items, only: [ :index ], path: "feed"
   end
   resources :promises, only: [ :index, :show ]
+  resources :policy_areas, only: [ :index ]
   resources :evidences, only: [ :index, :show ]
   resources :builders, only: [ :index, :show ]
   resources :statcan_datasets, only: [ :show ]

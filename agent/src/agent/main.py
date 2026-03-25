@@ -1,10 +1,11 @@
 """CLI entry point for the commitment evaluation agent."""
 
-import sys
+import os
 import time
 import uuid
 
 import click
+import httpx
 
 from agent.evaluator import (
     evaluate_commitment,
@@ -12,7 +13,20 @@ from agent.evaluator import (
     process_entry,
     weekly_scan_commitment,
 )
-from agent.tools.db_read import list_commitments
+
+
+def _fetch_commitments(status=None, policy_area=None, limit=100):
+    """Fetch commitments from the Rails REST API, oldest-assessed first."""
+    rails_url = os.environ.get("RAILS_API_URL", "http://localhost:3000")
+    params = {"per_page": limit, "sort": "last_assessed_at", "direction": "asc"}
+    if status:
+        params["status"] = status
+    if policy_area:
+        params["policy_area"] = policy_area
+
+    resp = httpx.get(f"{rails_url}/commitments", params=params, timeout=30.0)
+    resp.raise_for_status()
+    return resp.json().get("commitments", [])
 
 
 @click.group()
@@ -70,7 +84,7 @@ def scan_all(limit: int, status: str | None, policy_area: str | None, as_of: str
     click.echo("Starting weekly scan...")
     run_id = str(uuid.uuid4())
 
-    commitments = list_commitments(
+    commitments = _fetch_commitments(
         status=status,
         policy_area=policy_area,
         limit=limit,
