@@ -221,6 +221,9 @@ GEM
       actionview (>= 5.0.0)
       activesupport (>= 5.0.0)
     json (2.12.2)
+    json-schema (6.2.0)
+      addressable (~> 2.8)
+      bigdecimal (>= 3.1, < 5)
     language_server-protocol (3.17.0.5)
     lint_roller (1.1.0)
     llhttp-ffi (0.5.1)
@@ -238,6 +241,8 @@ GEM
     marcel (1.0.4)
     marksmith (0.4.5)
       activesupport
+    mcp (0.9.1)
+      json-schema (>= 4.1)
     meta-tags (2.22.1)
       actionpack (>= 6.0.0, < 8.1)
     method_source (1.1.0)
@@ -456,6 +461,7 @@ DEPENDENCIES
   importmap-rails (~> 2.1)
   jbuilder
   marksmith (~> 0.4.5)
+  mcp
   nokogiri (~> 1.18)
   pdf-reader (~> 2.12)
   pg (~> 1.1)
