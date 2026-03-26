@@ -17,6 +17,14 @@ class McpControllerTest < ActionDispatch::IntegrationTest
     }.to_json, headers: MCP_HEADERS
   end
 
+  # Extract the parsed JSON data from an MCP tool call response.
+  # MCP wraps results as: { result: { content: [{ type: "text", text: "...json..." }] } }
+  def tool_response_data
+    body = JSON.parse(response.body)
+    text = body.dig("result", "content", 0, "text")
+    JSON.parse(text)
+  end
+
   # -- Protocol --
 
   test "initialize returns server capabilities" do
@@ -24,10 +32,38 @@ class McpControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
   end
 
-  test "tools/list returns registered tools" do
+  test "tools/list returns exactly the expected tools with correct schemas" do
     mcp_initialize
     post "/mcp", params: { jsonrpc: "2.0", id: 2, method: "tools/list", params: {} }.to_json, headers: MCP_HEADERS
     assert_response :success
+
+    tools = JSON.parse(response.body).dig("result", "tools")
+    tool_map = tools.index_by { |t| t["name"] }
+
+    expected_tools = {
+      "list_commitments" => { properties: %w[q status policy_area commitment_type department sort direction page per_page], required: nil },
+      "get_commitment" => { properties: %w[id], required: %w[id] },
+      "list_bills" => { properties: [], required: nil },
+      "get_bill" => { properties: %w[id], required: %w[id] },
+      "list_departments" => { properties: [], required: nil },
+      "get_department" => { properties: %w[id_or_slug], required: %w[id_or_slug] },
+      "list_ministers" => { properties: [], required: nil },
+      "list_activity" => { properties: %w[commitment_id event_type policy_area_id since until page per_page], required: nil },
+      "get_commitment_summary" => { properties: %w[government_id source_type], required: %w[government_id] },
+      "get_commitment_progress" => { properties: %w[government_id source_type policy_area_slug department_slug], required: %w[government_id] }
+    }
+
+    assert_equal expected_tools.keys.sort, tool_map.keys.sort, "Tool names mismatch"
+
+    expected_tools.each do |name, expected|
+      schema = tool_map[name]["inputSchema"]
+      actual_props = (schema["properties"] || {}).keys.sort
+      assert_equal expected[:properties].sort, actual_props, "Properties mismatch for #{name}"
+
+      if expected[:required]
+        assert_equal expected[:required].sort, (schema["required"] || []).sort, "Required mismatch for #{name}"
+      end
+    end
   end
 
   # -- Commitments --
@@ -36,6 +72,11 @@ class McpControllerTest < ActionDispatch::IntegrationTest
     mcp_initialize
     mcp_call("list_commitments")
     assert_response :success
+
+    data = tool_response_data
+    assert data.key?("commitments"), "Expected commitments key"
+    assert data.key?("meta"), "Expected meta key"
+    assert_kind_of Array, data["commitments"]
   end
 
   test "list_commitments filtered by status" do
@@ -72,6 +113,11 @@ class McpControllerTest < ActionDispatch::IntegrationTest
     mcp_initialize
     mcp_call("get_commitment", id: commitments(:defence_spending).id)
     assert_response :success
+
+    data = tool_response_data
+    assert_equal commitments(:defence_spending).id, data["id"]
+    assert data.key?("title"), "Expected title key"
+    assert data.key?("status"), "Expected status key"
   end
 
   test "get_commitment not found" do
@@ -86,12 +132,19 @@ class McpControllerTest < ActionDispatch::IntegrationTest
     mcp_initialize
     mcp_call("list_departments")
     assert_response :success
+
+    data = tool_response_data
+    assert_kind_of Array, data
+    assert data.any?, "Expected at least one department"
   end
 
   test "get_department by slug" do
     mcp_initialize
     mcp_call("get_department", id_or_slug: "finance")
     assert_response :success
+
+    data = tool_response_data
+    assert_equal "finance", data["slug"]
   end
 
   test "get_department by id" do
@@ -106,38 +159,24 @@ class McpControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
   end
 
-  # -- Promises --
-
-  test "list_promises" do
-    mcp_initialize
-    mcp_call("list_promises")
-    assert_response :success
-  end
-
-  test "get_promise" do
-    mcp_initialize
-    mcp_call("get_promise", id: promises(:one).id)
-    assert_response :success
-  end
-
-  test "get_promise not found" do
-    mcp_initialize
-    mcp_call("get_promise", id: 999999)
-    assert_response :success
-  end
-
   # -- Bills --
 
   test "list_bills" do
     mcp_initialize
     mcp_call("list_bills")
     assert_response :success
+
+    data = tool_response_data
+    assert_kind_of Array, data
   end
 
   test "get_bill" do
     mcp_initialize
     mcp_call("get_bill", id: bills(:one).id)
     assert_response :success
+
+    data = tool_response_data
+    assert_equal bills(:one).id, data["id"]
   end
 
   test "get_bill not found" do
@@ -152,6 +191,9 @@ class McpControllerTest < ActionDispatch::IntegrationTest
     mcp_initialize
     mcp_call("list_ministers")
     assert_response :success
+
+    data = tool_response_data
+    assert_kind_of Array, data
   end
 
   # -- Feed Items --
@@ -180,6 +222,10 @@ class McpControllerTest < ActionDispatch::IntegrationTest
     mcp_initialize
     mcp_call("get_commitment_summary", government_id: governments(:canada).id)
     assert_response :success
+
+    data = tool_response_data
+    assert data.key?("government"), "Expected government key"
+    assert data.key?("policy_areas"), "Expected policy_areas key"
   end
 
   test "get_commitment_summary not found" do
@@ -192,6 +238,9 @@ class McpControllerTest < ActionDispatch::IntegrationTest
     mcp_initialize
     mcp_call("get_commitment_progress", government_id: governments(:canada).id)
     assert_response :success
+
+    data = tool_response_data
+    assert data.key?("government"), "Expected government key"
   end
 
   test "get_commitment_progress with filters" do

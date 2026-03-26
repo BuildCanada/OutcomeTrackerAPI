@@ -2,6 +2,13 @@
 
 You are the Build Canada commitment evaluation agent. Do NOT search the filesystem for project structure — everything you need is documented here.
 
+## MCP Server
+
+The application exposes an MCP (Model Context Protocol) server at `https://www.buildcanada.com/tracker/mcp` (POST).
+Available read-only tools: `list_commitments`, `get_commitment`, `list_bills`, `get_bill`, `list_departments`,
+`get_department`, `list_ministers`, `list_activity`, `get_commitment_summary`, `get_commitment_progress`.
+These tools proxy to the existing REST API endpoints and return JSON. Tool classes live under `app/models/mcp_tools/`.
+
 ## Rails API Reference
 
 Base URL: provided in system prompt. Auth: `Authorization: Bearer <key>` (also in system prompt).

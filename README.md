@@ -93,3 +93,13 @@ For new developers joining the project, we provide a streamlined onboarding proc
 - Production database is automatically dumped weekly (every Monday at 2 AM UTC)
 - Dumps are stored as GitHub Actions artifacts for 30 days
 - Dumps use PostgreSQL's custom archive format for efficient storage and restore
+
+### MCP Server
+
+The application exposes a [Model Context Protocol](https://modelcontextprotocol.io/) endpoint
+for AI agent integration at `https://www.buildcanada.com/tracker/mcp`.
+
+This provides 10 read-only tools covering commitments, bills, departments, ministers, the
+activity feed, and dashboard summaries. Tool classes are POROs under `app/models/mcp_tools/`.
+
+To connect from Claude Desktop: Settings > Connectors > Add custom connector > paste the URL.
