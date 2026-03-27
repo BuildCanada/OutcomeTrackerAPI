@@ -1,6 +1,9 @@
 Rails.application.routes.draw do
-  authenticate :user do
+  authenticate :user, lambda { |u| u.admin? } do
     mount GoodJob::Engine => "/admin/good_job"
+  end
+
+  authenticate :user do
     mount Avo::Engine => "/admin"
   end
 
