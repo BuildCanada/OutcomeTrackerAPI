@@ -31,7 +31,7 @@ class AgentProcessEntryJob < ApplicationJob
   def stream_agent(env, cmd, chdir:)
     Open3.popen2e(env, *cmd, chdir: chdir) do |stdin, output, thread|
       stdin.close
-      output.each_line { |line| $stderr.print(line) }
+      output.each_line { |line| STDERR.print(line); STDERR.flush }
       thread.value
     end
   end
