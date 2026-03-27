@@ -87,6 +87,7 @@ class AgentEvaluateCommitmentJob < ApplicationJob
 
   def agent_env(commitment_id: nil, entry_id: nil)
     {
+      "PATH"                  => ENV["PATH"],
       "CLAUDE_CODE_OAUTH_TOKEN" => ENV["CLAUDE_CODE_OAUTH_TOKEN"],
       "RAILS_API_URL"         => ENV.fetch("RAILS_API_URL", "http://localhost:3000"),
       "RAILS_API_KEY"         => Rails.application.credentials.dig(:agent, :api_key) || ENV["AGENT_API_KEY"],
