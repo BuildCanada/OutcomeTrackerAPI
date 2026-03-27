@@ -1,12 +1,7 @@
 Rails.application.routes.draw do
-  if Rails.env.development?
+  authenticate :user, lambda { |u| u.admin? } do
     mount GoodJob::Engine => "/admin/good_job"
     mount Avo::Engine => "/admin"
-  else
-    authenticate :user, lambda { |u| u.admin? } do
-      mount GoodJob::Engine => "/admin/good_job"
-      mount Avo::Engine => "/admin"
-    end
   end
 
   # Custom Avo tool routes
