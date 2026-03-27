@@ -60,7 +60,7 @@ module Api
           content_markdown: parsed_markdown,
           published_date: published_date,
           source_id: source.id,
-          source_existed: !source.previously_new_record?,
+          source_existed: !source.previously_new_record?
         }
       end
 

@@ -52,10 +52,10 @@ class CommitmentsController < ApplicationController
   end
 
   def page_size
-    [(params[:per_page] || 50).to_i, 1000].min
+    [ (params[:per_page] || 50).to_i, 1000 ].min
   end
 
   def page_offset
-    [(params[:page] || 1).to_i - 1, 0].max * page_size
+    [ (params[:page] || 1).to_i - 1, 0 ].max * page_size
   end
 end

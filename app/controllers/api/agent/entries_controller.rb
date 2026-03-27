@@ -20,7 +20,7 @@ module Api
             id: e.id, title: e.title, url: e.url,
             published_at: e.published_at, scraped_at: e.scraped_at,
             activities_extracted_at: e.activities_extracted_at,
-            feed_title: e.feed&.title,
+            feed_title: e.feed&.title
           }
         }
       end
@@ -37,7 +37,7 @@ module Api
           parsed_markdown: entry.parsed_markdown,
           activities_extracted_at: entry.activities_extracted_at,
           feed_title: entry.feed&.title,
-          feed_source_url: entry.feed&.source_url,
+          feed_source_url: entry.feed&.source_url
         }
       end
 

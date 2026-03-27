@@ -19,7 +19,7 @@ module McpRackTool
       path = path_template.gsub(/:(\w+)/) { params[$1.to_sym] }
       query_params = params.except(*path_params)
       response = rack_get(path, query_params)
-      MCP::Tool::Response.new([{ type: "text", text: response }])
+      MCP::Tool::Response.new([ { type: "text", text: response } ])
     end
 
     private

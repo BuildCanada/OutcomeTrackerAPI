@@ -8,7 +8,7 @@ def db_config_for_env(target_env)
       port: config["port"],
       username: config["username"],
       password: config["password"],
-      database: config["database"],
+      database: config["database"]
     }
   else
     enc_path = Rails.root.join("config/credentials/#{target_env}.yml.enc")
@@ -43,7 +43,7 @@ def db_config_for_env(target_env)
       port: db[:port],
       username: db[:username],
       password: db[:password],
-      database: db[:database],
+      database: db[:database]
     }
   end
 end
@@ -62,7 +62,7 @@ end
 def restore_dump(dump_file, db_config)
   require "open3"
 
-  pg_restore_cmd = ["pg_restore"]
+  pg_restore_cmd = [ "pg_restore" ]
   pg_restore_cmd << "--host=#{db_config[:host]}" if db_config[:host]
   pg_restore_cmd << "--port=#{db_config[:port]}" if db_config[:port]
   pg_restore_cmd << "--username=#{db_config[:username]}" if db_config[:username]
@@ -88,7 +88,7 @@ end
 
 namespace :db do
   desc "Restore database to a target environment. Usage: rake db:restore[production] or DUMP_FILE=/path rake db:restore[staging]"
-  task :restore, [:env] => :environment do |_t, args|
+  task :restore, [ :env ] => :environment do |_t, args|
     target_env = args[:env] || Rails.env
     dump_file = ENV["DUMP_FILE"] || find_latest_backup
 

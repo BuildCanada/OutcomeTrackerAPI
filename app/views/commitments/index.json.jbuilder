@@ -17,5 +17,5 @@ end
 json.meta do
   json.total_count @total_count
   json.page (params[:page] || 1).to_i
-  json.per_page [(params[:per_page] || 50).to_i, 100].min
+  json.per_page [ (params[:per_page] || 50).to_i, 100 ].min
 end

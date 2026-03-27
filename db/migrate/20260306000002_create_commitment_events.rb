@@ -12,7 +12,7 @@ class CreateCommitmentEvents < ActiveRecord::Migration[8.0]
       t.timestamps
     end
 
-    add_index :commitment_events, [:commitment_id, :occurred_at]
+    add_index :commitment_events, [ :commitment_id, :occurred_at ]
     add_index :commitment_events, :event_type
     add_index :commitment_events, :action_type
   end

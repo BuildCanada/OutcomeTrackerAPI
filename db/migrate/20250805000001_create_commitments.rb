@@ -24,7 +24,7 @@ class CreateCommitments < ActiveRecord::Migration[8.0]
 
     add_index :commitments, :commitment_type
     add_index :commitments, :status
-    add_index :commitments, [:government_id, :commitment_type]
-    add_index :commitments, [:government_id, :status]
+    add_index :commitments, [ :government_id, :commitment_type ]
+    add_index :commitments, [ :government_id, :status ]
   end
 end

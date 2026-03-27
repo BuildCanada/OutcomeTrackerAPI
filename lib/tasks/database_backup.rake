@@ -13,7 +13,7 @@ namespace :db do
     filename = "#{database}_backup_#{timestamp}.dump"
     filepath = backup_dir.join(filename)
 
-    cmd_parts = ["pg_dump"]
+    cmd_parts = [ "pg_dump" ]
     cmd_parts << "--host=#{db_config['host']}" if db_config["host"]
     cmd_parts << "--port=#{db_config['port']}" if db_config["port"]
     cmd_parts << "--username=#{db_config['username']}" if db_config["username"]

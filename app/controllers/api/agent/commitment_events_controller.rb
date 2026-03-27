@@ -26,7 +26,7 @@ module Api
           commitment_id: event.commitment_id,
           event_type: event.event_type,
           title: event.title,
-          source_id: source.id,
+          source_id: source.id
         }, status: :created
       end
     end

@@ -15,7 +15,7 @@ class CreateEvaluationRuns < ActiveRecord::Migration[8.0]
     end
 
     add_index :evaluation_runs, :agent_run_id
-    add_index :evaluation_runs, [:commitment_id, :created_at]
+    add_index :evaluation_runs, [ :commitment_id, :created_at ]
     add_index :evaluation_runs, :trigger_type
   end
 end

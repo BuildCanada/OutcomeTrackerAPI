@@ -85,13 +85,13 @@ class SourceDocumentProcessorJob < ApplicationJob
   end
 
   def chunk_pages(pages, per_chunk: 10)
-    return [build_chunk(pages, 1, pages.size)] if pages.size <= per_chunk
+    return [ build_chunk(pages, 1, pages.size) ] if pages.size <= per_chunk
 
     chunks = []
     start_idx = 0
 
     while start_idx < pages.size
-      end_idx = [start_idx + per_chunk, pages.size].min
+      end_idx = [ start_idx + per_chunk, pages.size ].min
       chunks << build_chunk(pages[start_idx...end_idx], start_idx + 1, end_idx)
       break if end_idx >= pages.size
       start_idx = end_idx - 1 # 1-page overlap

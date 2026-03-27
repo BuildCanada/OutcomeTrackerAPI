@@ -12,10 +12,10 @@ class CreateFeedItems < ActiveRecord::Migration[8.0]
       t.timestamps
     end
 
-    add_index :feed_items, [:feedable_type, :feedable_id]
-    add_index :feed_items, [:commitment_id, :occurred_at]
-    add_index :feed_items, [:policy_area_id, :occurred_at]
-    add_index :feed_items, [:event_type, :occurred_at]
+    add_index :feed_items, [ :feedable_type, :feedable_id ]
+    add_index :feed_items, [ :commitment_id, :occurred_at ]
+    add_index :feed_items, [ :policy_area_id, :occurred_at ]
+    add_index :feed_items, [ :event_type, :occurred_at ]
     add_index :feed_items, :occurred_at
   end
 end

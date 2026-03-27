@@ -23,7 +23,7 @@ module Api
               relevance_score: m.relevance_score,
               relevance_reasoning: m.relevance_reasoning,
               commitment_title: m.commitment&.title,
-              commitment_status: m.commitment&.status,
+              commitment_status: m.commitment&.status
             }
           end
 
@@ -48,7 +48,7 @@ module Api
           passed_senate_first_reading_at: b.passed_senate_first_reading_at,
           passed_senate_second_reading_at: b.passed_senate_second_reading_at,
           passed_senate_third_reading_at: b.passed_senate_third_reading_at,
-          received_royal_assent_at: b.received_royal_assent_at,
+          received_royal_assent_at: b.received_royal_assent_at
         }
       end
     end

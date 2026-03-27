@@ -12,6 +12,6 @@ class CreateCommitmentRevisions < ActiveRecord::Migration[8.0]
       t.timestamps
     end
 
-    add_index :commitment_revisions, [:commitment_id, :revision_date]
+    add_index :commitment_revisions, [ :commitment_id, :revision_date ]
   end
 end

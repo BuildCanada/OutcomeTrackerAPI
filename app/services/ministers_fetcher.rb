@@ -45,7 +45,7 @@ class MinistersFetcher
           last_name: node.at_xpath("PersonOfficialLastName")&.text,
           title: node.at_xpath("Title")&.text,
           from_date: node.at_xpath("FromDateTime")&.text,
-          to_date: node.at_xpath("ToDateTime")&.text,
+          to_date: node.at_xpath("ToDateTime")&.text
         }
       end
     end
@@ -62,7 +62,7 @@ class MinistersFetcher
       {
         constituency: role.at_xpath("ConstituencyName")&.text,
         province: role.at_xpath("ConstituencyProvinceTerritoryName")&.text,
-        party: role.at_xpath("CaucusShortName")&.text,
+        party: role.at_xpath("CaucusShortName")&.text
       }
     rescue => e
       Rails.logger.warn("Failed to fetch profile XML for person #{person_id}: #{e.message}")

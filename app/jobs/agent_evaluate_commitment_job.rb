@@ -58,7 +58,7 @@ class AgentEvaluateCommitmentJob < ApplicationJob
       "--permission-mode", "bypassPermissions",
       "--model", ENV.fetch("AGENT_MODEL", "claude-sonnet-4-6"),
       "--output-format", "text",
-      "--settings", hook_settings,
+      "--settings", hook_settings
     ]
   end
 
@@ -68,7 +68,7 @@ class AgentEvaluateCommitmentJob < ApplicationJob
       "WebFetch(https://*.canada.ca/*)",
       "WebFetch(https://*.gc.ca/*)",
       "WebFetch(https://www.parl.ca/*)",
-      "WebSearch",
+      "WebSearch"
     ]
   end
 
@@ -92,7 +92,7 @@ class AgentEvaluateCommitmentJob < ApplicationJob
       "ENTRY_ID"              => entry_id&.to_s,
       # Explicitly unset — subprocess must not access Rails credentials
       "RAILS_MASTER_KEY"      => nil,
-      "SECRET_KEY_BASE"       => nil,
+      "SECRET_KEY_BASE"       => nil
     }.compact
   end
 end

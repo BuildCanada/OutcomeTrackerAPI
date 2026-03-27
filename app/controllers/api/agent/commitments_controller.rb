@@ -29,7 +29,7 @@ module Api
           {
             id: cr.id, category: cr.category, description: cr.description,
             verification_method: cr.verification_method, status: cr.status,
-            evidence_notes: cr.evidence_notes, assessed_at: cr.assessed_at, position: cr.position,
+            evidence_notes: cr.evidence_notes, assessed_at: cr.assessed_at, position: cr.position
           }
         end
 
@@ -43,7 +43,7 @@ module Api
               id: m.id, matchable_type: m.matchable_type, matchable_id: m.matchable_id,
               relevance_score: m.relevance_score, relevance_reasoning: m.relevance_reasoning,
               matched_at: m.matched_at, assessed: m.assessed,
-              matchable_title: matchable_title, matchable_detail: matchable_detail,
+              matchable_title: matchable_title, matchable_detail: matchable_detail
             }
           end
 
@@ -51,7 +51,7 @@ module Api
           {
             id: e.id, event_type: e.event_type, action_type: e.action_type,
             title: e.title, description: e.description, occurred_at: e.occurred_at,
-            metadata: e.metadata,
+            metadata: e.metadata
           }
         end
 
@@ -62,7 +62,7 @@ module Api
               id: cs.id, section: cs.section, reference: cs.reference,
               excerpt: cs.excerpt, relevance_note: cs.relevance_note,
               source_title: cs.source&.title, source_type: cs.source&.source_type,
-              source_url: cs.source&.url, source_date: cs.source&.date,
+              source_url: cs.source&.url, source_date: cs.source&.date
             }
           end
 
@@ -74,7 +74,7 @@ module Api
               id: cd.department_id, slug: cd.department&.slug,
               display_name: cd.department&.display_name,
               official_name: cd.department&.official_name,
-              is_lead: cd.is_lead,
+              is_lead: cd.is_lead
             }
           end
 
@@ -83,7 +83,7 @@ module Api
           .map do |sc|
             {
               previous_status: sc.previous_status, new_status: sc.new_status,
-              changed_at: sc.changed_at, reason: sc.reason,
+              changed_at: sc.changed_at, reason: sc.reason
             }
           end
 
@@ -105,7 +105,7 @@ module Api
           events: events,
           sources: sources,
           departments: departments,
-          status_changes: status_changes,
+          status_changes: status_changes
         }
       end
 
@@ -118,7 +118,7 @@ module Api
               section: cs.section, reference: cs.reference,
               excerpt: cs.excerpt, relevance_note: cs.relevance_note,
               title: cs.source&.title, source_type: cs.source&.source_type,
-              url: cs.source&.url, date: cs.source&.date,
+              url: cs.source&.url, date: cs.source&.date
             }
           end
         render json: result
@@ -159,7 +159,7 @@ module Api
           policy_area_name: c.policy_area&.name,
           policy_area_slug: c.policy_area&.slug,
           criteria_count: c.criteria.size,
-          matches_count: c.commitment_matches.size,
+          matches_count: c.commitment_matches.size
         }
       end
 
@@ -195,7 +195,7 @@ module Api
           new_status: commitment.status,
           reasoning: reasoning,
           effective_date: effective_date,
-          source_ids: sources.pluck(:id),
+          source_ids: sources.pluck(:id)
         }
       end
     end

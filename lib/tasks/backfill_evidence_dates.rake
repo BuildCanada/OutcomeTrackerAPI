@@ -23,7 +23,7 @@ end
 def evidence_date_for(matchable)
   case matchable
   when Entry then matchable.published_at
-  when Bill then [matchable.passed_house_first_reading_at, matchable.latest_activity_at].compact.max
+  when Bill then [ matchable.passed_house_first_reading_at, matchable.latest_activity_at ].compact.max
   when StatcanDataset then matchable.last_synced_at
   end
 end
