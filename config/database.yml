@@ -78,6 +78,8 @@ staging:
 production:
   <<: *default
   url: <%= ENV["DATABASE_URL"] %>
+  variables:
+    statement_timeout: 0
 #
 # Read https://guides.rubyonrails.org/configuring.html#configuring-a-database
 # for a full overview on how database connection configuration can be specified.
