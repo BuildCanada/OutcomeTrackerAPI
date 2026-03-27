@@ -34,7 +34,7 @@ module Api
           previous_status: previous_status,
           new_status: criterion.status,
           evidence_notes: evidence_notes,
-          source_id: source.id,
+          source_id: source.id
         }
       end
     end

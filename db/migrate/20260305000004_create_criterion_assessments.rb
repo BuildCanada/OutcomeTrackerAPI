@@ -11,6 +11,6 @@ class CreateCriterionAssessments < ActiveRecord::Migration[8.0]
       t.timestamps
     end
 
-    add_index :criterion_assessments, [:criterion_id, :assessed_at]
+    add_index :criterion_assessments, [ :criterion_id, :assessed_at ]
   end
 end

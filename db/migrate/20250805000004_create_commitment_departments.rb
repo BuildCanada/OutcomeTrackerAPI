@@ -8,6 +8,6 @@ class CreateCommitmentDepartments < ActiveRecord::Migration[8.0]
       t.timestamps
     end
 
-    add_index :commitment_departments, [:commitment_id, :department_id], unique: true
+    add_index :commitment_departments, [ :commitment_id, :department_id ], unique: true
   end
 end

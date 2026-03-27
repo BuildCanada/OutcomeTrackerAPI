@@ -25,5 +25,4 @@ class CriterionAssessment < ApplicationRecord
       occurred_at: assessed_at
     )
   end
-
 end

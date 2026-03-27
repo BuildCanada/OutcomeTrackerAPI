@@ -13,11 +13,11 @@ class CreateCommitmentMatches < ActiveRecord::Migration[8.0]
       t.timestamps
     end
 
-    add_index :commitment_matches, [:commitment_id, :matchable_type, :matchable_id],
+    add_index :commitment_matches, [ :commitment_id, :matchable_type, :matchable_id ],
               unique: true, name: "idx_commitment_matches_unique"
-    add_index :commitment_matches, [:matchable_type, :matchable_id],
+    add_index :commitment_matches, [ :matchable_type, :matchable_id ],
               name: "idx_commitment_matches_matchable"
-    add_index :commitment_matches, [:commitment_id, :assessed],
+    add_index :commitment_matches, [ :commitment_id, :assessed ],
               name: "idx_commitment_matches_unassessed"
   end
 end

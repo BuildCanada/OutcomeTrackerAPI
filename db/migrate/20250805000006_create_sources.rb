@@ -10,6 +10,6 @@ class CreateSources < ActiveRecord::Migration[8.0]
     end
 
     add_index :sources, :source_type
-    add_index :sources, [:government_id, :source_type]
+    add_index :sources, [ :government_id, :source_type ]
   end
 end

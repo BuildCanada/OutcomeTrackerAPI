@@ -22,7 +22,7 @@ module Api
           matchable_type: match.matchable_type,
           matchable_id: match.matchable_id,
           relevance_score: match.relevance_score,
-          created: match.previously_new_record?,
+          created: match.previously_new_record?
         }
       end
     end

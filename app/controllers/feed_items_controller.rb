@@ -22,11 +22,11 @@ class FeedItemsController < ApplicationController
   private
 
   def current_page
-    [(params[:page] || 1).to_i, 1].max
+    [ (params[:page] || 1).to_i, 1 ].max
   end
 
   def page_size
-    [(params[:per_page] || 50).to_i, 100].min
+    [ (params[:per_page] || 50).to_i, 100 ].min
   end
 
   def page_offset

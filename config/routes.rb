@@ -36,9 +36,11 @@ Rails.application.routes.draw do
     get "dashboard/:government_id/at_a_glance", to: "dashboard#at_a_glance", as: :at_a_glance
 
     namespace :agent do
-      resources :commitments, only: [] do
+      resources :commitments, only: [ :index, :show ] do
         member do
           patch :status
+          get :sources
+          patch :touch_assessed
         end
       end
       resources :criteria, only: [ :update ]
@@ -46,6 +48,10 @@ Rails.application.routes.draw do
       resources :commitment_events, only: [ :create ]
       resources :sources, only: [ :create ]
       resources :evaluation_runs, only: [ :create ]
+      resources :bills, only: [ :index, :show ]
+      resources :entries, only: [ :index, :show ] do
+        member { patch :mark_processed }
+      end
       post "pages/fetch", to: "pages#fetch"
     end
   end

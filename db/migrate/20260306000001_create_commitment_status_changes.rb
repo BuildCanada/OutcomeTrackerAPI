@@ -9,6 +9,6 @@ class CreateCommitmentStatusChanges < ActiveRecord::Migration[8.0]
       t.timestamps
     end
 
-    add_index :commitment_status_changes, [:commitment_id, :changed_at]
+    add_index :commitment_status_changes, [ :commitment_id, :changed_at ]
   end
 end

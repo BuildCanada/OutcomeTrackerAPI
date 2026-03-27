@@ -16,8 +16,8 @@ class CreateCriteria < ActiveRecord::Migration[8.0]
     end
 
     add_index :criteria, :status
-    add_index :criteria, [:commitment_id, :category]
-    add_index :criteria, [:commitment_id, :category, :status]
-    add_index :criteria, [:assessed_by_type, :assessed_by_id]
+    add_index :criteria, [ :commitment_id, :category ]
+    add_index :criteria, [ :commitment_id, :category, :status ]
+    add_index :criteria, [ :assessed_by_type, :assessed_by_id ]
   end
 end
