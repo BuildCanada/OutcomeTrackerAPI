@@ -14,13 +14,16 @@ def db_config_for_env(target_env)
     enc_path = Rails.root.join("config/credentials/#{target_env}.yml.enc")
     key_path = Rails.root.join("config/credentials/#{target_env}.key")
 
-    unless File.exist?(enc_path)
+    creds = if File.exist?(enc_path)
+      Rails.application.encrypted(enc_path, key_path: key_path)
+    elsif target_env == "production"
+      Rails.application.credentials
+    else
       puts "No credentials file found: #{enc_path}"
       puts "Create with: bin/rails credentials:edit --environment #{target_env}"
       exit 1
     end
 
-    creds = Rails.application.encrypted(enc_path, key_path: key_path)
     db = creds.database
 
     if db.nil?

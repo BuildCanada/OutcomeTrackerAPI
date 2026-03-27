@@ -43,6 +43,9 @@ RUN chown -R $USERNAME:$USERNAME /workspaces
 # Switch to the non-root user
 USER $USERNAME
 
+# Install Claude Code (native binary)
+RUN curl -fsSL https://claude.ai/install.sh | bash
+
 # Install bundler
 RUN gem install bundler
 
@@ -50,7 +53,7 @@ RUN gem install bundler
 ENV BUNDLE_PATH=/usr/local/bundle \
     BUNDLE_BIN=/usr/local/bundle/bin \
     GEM_HOME=/usr/local/bundle
-ENV PATH=$BUNDLE_BIN:$PATH
+ENV PATH=$BUNDLE_BIN:/home/$USERNAME/.local/bin:$PATH
 
 # Default command
 CMD ["/bin/bash"]

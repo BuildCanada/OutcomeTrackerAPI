@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_03_24_000001) do
+ActiveRecord::Schema[8.0].define(version: 2026_03_27_161901) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -299,6 +299,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_24_000001) do
     t.bigint "parent_id"
     t.datetime "skipped_at", precision: nil
     t.string "skip_reason"
+    t.datetime "agent_processed_at"
     t.index ["feed_id"], name: "index_entries_on_feed_id"
     t.index ["government_id"], name: "index_entries_on_government_id"
     t.index ["parent_id"], name: "index_entries_on_parent_id"
