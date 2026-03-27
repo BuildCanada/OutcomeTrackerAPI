@@ -21,6 +21,9 @@ Avo.configure do |config|
   config.current_user_method = :current_user
   config.authenticate_with do
     warden.authenticate! scope: :user
+    unless current_user&.admin?
+      redirect_to main_app.root_path, alert: "Not authorized."
+    end
   end
 
   ## == Authorization ==
