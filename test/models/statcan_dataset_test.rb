@@ -118,9 +118,9 @@ class StatcanDatasetTest < ActiveSupport::TestCase
   end
 
   test "needs_sync returns true when last sync was before last scheduled time" do
-   attributes = self.class.valid_attributes.merge(sync_schedule: "0 0 * * *", last_synced_at: Time.parse("2025-01-01 23:00:00"))
+   attributes = self.class.valid_attributes.merge(sync_schedule: "0 0 * * *", last_synced_at: Time.utc(2025, 1, 1, 23, 0, 0))
    dataset = StatcanDataset.new(attributes)
-   current_time = Time.parse("2025-01-02 14:00:00")  # 2pm next day
+   current_time = Time.utc(2025, 1, 2, 14, 0, 0)  # 2pm next day UTC
 
    assert dataset.needs_sync?(current_time)
   end
