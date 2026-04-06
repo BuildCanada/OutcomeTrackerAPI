@@ -7,7 +7,7 @@ class StatcanCronJobTest < ActiveJob::TestCase
   end
 
   test "should enqueue sync jobs for stale datasets only" do
-    current_time = Time.parse("2025-01-02 14:00:00")  # 2pm
+    current_time = Time.utc(2025, 1, 2, 14, 0, 0)  # 2pm UTC
 
     # Create a stale dataset (never synced)
     stale_dataset1 = StatcanDataset.create!(
@@ -22,7 +22,7 @@ class StatcanCronJobTest < ActiveJob::TestCase
       name: "stale-old-sync",
       statcan_url: "https://statcan.gc.ca/stale2.csv",
       sync_schedule: "0 0 * * *",
-      last_synced_at: Time.parse("2025-01-01 23:00:00")  # Yesterday 11pm
+      last_synced_at: Time.utc(2025, 1, 1, 23, 0, 0)  # Yesterday 11pm UTC
     )
 
     # Create a fresh dataset (recent sync)
@@ -30,7 +30,7 @@ class StatcanCronJobTest < ActiveJob::TestCase
       name: "fresh-dataset",
       statcan_url: "https://statcan.gc.ca/fresh.csv",
       sync_schedule: "0 0 * * *",
-      last_synced_at: Time.parse("2025-01-02 01:00:00")  # 1am today
+      last_synced_at: Time.utc(2025, 1, 2, 1, 0, 0)  # 1am UTC today
     )
 
     # Track enqueued jobs

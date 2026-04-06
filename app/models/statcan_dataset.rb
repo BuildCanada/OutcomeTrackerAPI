@@ -6,6 +6,10 @@ class StatcanDataset < ApplicationRecord
   validates :sync_schedule, presence: true
   validate :valid_cron_expression
 
+  def to_param
+    name
+  end
+
   def self.filter_stale(datasets, current_time = Time.current)
     datasets.select { |dataset| dataset.needs_sync?(current_time) }
   end
