@@ -28,6 +28,13 @@ Rails.application.configure do
   # Force all access to the app over SSL, use Strict-Transport-Security, and use secure cookies.
   config.force_ssl = true
 
+  # Turn off the IP spoofing check. The app runs behind Cloudflare and an internal
+  # Docker proxy, so the trusted client IP comes from the proxy, not from a
+  # client-supplied header. With the check on, any request that sends a Client-IP
+  # header that disagrees with X-Forwarded-For makes ActionDispatch::RemoteIp raise
+  # IpSpoofAttackError and return a 500 before the request reaches a controller.
+  config.action_dispatch.ip_spoofing_check = false
+
   # Skip http-to-https redirect for the default health check endpoint.
   # config.ssl_options = { redirect: { exclude: ->(request) { request.path == "/up" } } }
 
