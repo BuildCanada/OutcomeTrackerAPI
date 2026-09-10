@@ -40,6 +40,9 @@ services:
       - HOST
       - RAILS_LOG_LEVEL
       - GOOD_JOB_EXECUTION_MODE=external
+      # The agent subprocess posts results back to the Rails API; inside the compose
+      # network the web service is reachable by name, not on localhost.
+      - RAILS_API_URL=http://web:3000
       - SMTP_USER_NAME
       - SMTP_PASSWORD
       - SMTP_ADDRESS
