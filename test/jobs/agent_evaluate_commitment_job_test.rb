@@ -33,6 +33,36 @@ class AgentEvaluateCommitmentJobTest < ActiveJob::TestCase
     assert_match(%r{http://127\.0\.0\.1:1 is unreachable}, error.message)
   end
 
+  test "skips a commitment already assessed today" do
+    ENV["AGENT_API_KEY"] = "test-key"
+    ENV["RAILS_API_URL"] = "http://127.0.0.1:1"
+    @commitment.update!(last_assessed_at: 1.hour.ago)
+
+    AgentEvaluateCommitmentJob.perform_now(@commitment)
+
+    assert_no_enqueued_jobs only: AgentEvaluateCommitmentJob
+  end
+
+  test "re-runs a commitment assessed today when forced" do
+    ENV["AGENT_API_KEY"] = "test-key"
+    ENV["RAILS_API_URL"] = "http://127.0.0.1:1"
+    @commitment.update!(last_assessed_at: 1.hour.ago)
+
+    error = perform_and_capture_retry_error(AgentEvaluateCommitmentJob.new(@commitment, force: true))
+
+    assert_instance_of RunsClaudeAgent::ApiUnreachableError, error
+  end
+
+  test "runs a commitment last assessed on a previous day" do
+    ENV["AGENT_API_KEY"] = "test-key"
+    ENV["RAILS_API_URL"] = "http://127.0.0.1:1"
+    @commitment.update!(last_assessed_at: 1.day.ago.end_of_day - 1.hour)
+
+    error = perform_and_capture_retry_error(AgentEvaluateCommitmentJob.new(@commitment))
+
+    assert_instance_of RunsClaudeAgent::ApiUnreachableError, error
+  end
+
   private
 
   # retry_on rescues the failure and re-enqueues the job; the error is only
