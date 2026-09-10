@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_03_27_161901) do
+ActiveRecord::Schema[8.0].define(version: 2026_09_10_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -54,6 +54,45 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_27_161901) do
     t.datetime "updated_at", null: false
     t.index ["entry_id"], name: "index_activities_on_entry_id"
     t.index ["government_id"], name: "index_activities_on_government_id"
+  end
+
+  create_table "agent_run_events", force: :cascade do |t|
+    t.bigint "agent_run_id", null: false
+    t.integer "sequence", null: false
+    t.string "stream", null: false
+    t.jsonb "payload", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["agent_run_id", "sequence"], name: "index_agent_run_events_on_agent_run_id_and_sequence", unique: true
+    t.index ["agent_run_id"], name: "index_agent_run_events_on_agent_run_id"
+  end
+
+  create_table "agent_runs", force: :cascade do |t|
+    t.bigint "commitment_id"
+    t.bigint "entry_id"
+    t.string "active_job_id"
+    t.string "provider_job_id"
+    t.string "job_class", null: false
+    t.integer "attempt", null: false
+    t.string "session_id"
+    t.string "model", null: false
+    t.text "prompt", null: false
+    t.text "system_prompt", null: false
+    t.string "status", null: false
+    t.integer "exit_code"
+    t.text "error_message"
+    t.datetime "started_at", null: false
+    t.datetime "finished_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.string "oauth_token_label"
+    t.string "oauth_token_fingerprint"
+    t.index ["active_job_id"], name: "index_agent_runs_on_active_job_id"
+    t.index ["commitment_id"], name: "index_agent_runs_on_commitment_id"
+    t.index ["entry_id"], name: "index_agent_runs_on_entry_id"
+    t.index ["provider_job_id"], name: "index_agent_runs_on_provider_job_id"
+    t.index ["session_id"], name: "index_agent_runs_on_session_id"
+    t.index ["started_at"], name: "index_agent_runs_on_started_at"
   end
 
   create_table "bills", force: :cascade do |t|
@@ -702,6 +741,9 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_27_161901) do
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "activities", "entries"
   add_foreign_key "activities", "governments"
+  add_foreign_key "agent_run_events", "agent_runs", on_delete: :cascade
+  add_foreign_key "agent_runs", "commitments", on_delete: :nullify
+  add_foreign_key "agent_runs", "entries", on_delete: :nullify
   add_foreign_key "canadian_builders", "governments"
   add_foreign_key "commitment_departments", "commitments"
   add_foreign_key "commitment_departments", "departments"

@@ -11,6 +11,7 @@ module RunsClaudeAgent
 
   class ConfigurationError < StandardError; end
   class ApiUnreachableError < StandardError; end
+  class AgentExecutionError < StandardError; end
 
   ALLOWED_TOOLS = [
     "Bash(curl *)",
@@ -63,21 +64,109 @@ module RunsClaudeAgent
   end
 
   def run_agent(prompt, hook_script:, commitment_id: nil, entry_id: nil)
-    stream_agent(
-      agent_env(commitment_id: commitment_id, entry_id: entry_id),
-      build_cmd(prompt, hook_script: hook_script),
-      chdir: agent_dir.to_s
+    secrets = (ClaudeOauthPool.secrets + [ agent_api_key, ENV["ANTHROPIC_API_KEY"] ]).compact.reject(&:empty?)
+    credential = ClaudeOauthPool.pick
+    cmd = build_cmd(prompt, hook_script: hook_script)
+    run = AgentRun.create!(
+      commitment_id: commitment_id, entry_id: entry_id,
+      active_job_id: job_id, provider_job_id: provider_job_id,
+      job_class: self.class.name, attempt: executions,
+      model: agent_model, prompt: redact_agent_value(prompt, secrets),
+      oauth_token_label: credential&.label, oauth_token_fingerprint: credential&.fingerprint,
+      system_prompt: redact_agent_value(cmd[cmd.index("--system-prompt") + 1], secrets),
+      status: "running", started_at: Time.current
     )
+    env = agent_env(commitment_id: commitment_id, entry_id: entry_id)
+    if credential
+      env["CLAUDE_CODE_OAUTH_TOKEN"] = credential.token
+      env["ANTHROPIC_API_KEY"] = nil
+    end
+    status = stream_agent(env, cmd, chdir: agent_dir.to_s, run: run, secrets: secrets)
+    run.update!(status: status.success? && run.status != "failed" ? "succeeded" : "failed",
+                exit_code: status.exitstatus, finished_at: Time.current)
+    raise AgentExecutionError, "Claude returned an error result" if status.success? && run.status == "failed"
+    status
+  rescue StandardError => error
+    if run&.persisted?
+      begin
+        run.update!(status: "failed", finished_at: Time.current,
+                    error_message: redact_agent_value("#{error.class}: #{error.message}", secrets))
+      rescue StandardError
+        Rails.logger.error("Could not finalize agent run #{run.id}")
+      end
+    end
+    raise
   end
 
-  def stream_agent(env, cmd, chdir:)
-    Open3.popen2e(env, *cmd, chdir: chdir) do |stdin, output, thread|
+  def stream_agent(env, cmd, chdir:, run:, secrets:)
+    sequence = 0
+    Open3.popen3(env, *cmd, chdir: chdir, pgroup: true) do |stdin, stdout, stderr, thread|
       stdin.close
-      output.each_line do |line|
-        STDERR.print(line)
-        STDERR.flush
+      buffers = { stdout => +"", stderr => +"" }
+      record = lambda do |io, line|
+        line = line.dup.force_encoding(Encoding::UTF_8).scrub
+        payload = if io == stdout
+          begin
+            JSON.parse(line)
+          rescue JSON::ParserError
+            { "type" => "unparsed_stdout", "text" => line }
+          end
+        else
+          { "type" => "stderr", "text" => line }
+        end
+        payload = redact_agent_value(payload, secrets)
+        sequence += 1
+        run.events.create!(sequence: sequence, stream: io == stdout ? "stdout" : "stderr", payload: payload)
+        if io == stdout && payload.is_a?(Hash) && payload["session_id"].present?
+          run.update!(session_id: payload["session_id"])
+        end
+        if io == stdout && payload.is_a?(Hash) && payload["type"] == "result" && payload["is_error"]
+          run.update!(status: "failed")
+        end
+        STDERR.puts(payload.to_json)
       end
-      thread.value
+
+      begin
+        until buffers.empty?
+          IO.select(buffers.keys).first.each do |io|
+            chunk = io.read_nonblock(16_384, exception: false)
+            next if chunk == :wait_readable
+            if chunk.nil?
+              record.call(io, buffers[io]) unless buffers[io].empty?
+              buffers.delete(io)
+            else
+              buffers[io] << chunk
+              while (newline = buffers[io].index("\n"))
+                record.call(io, buffers[io].slice!(0..newline))
+              end
+            end
+          end
+        end
+        thread.value
+      ensure
+        # Open3 waits for its child when leaving the block. Kill the process
+        # group on recording errors so a blocked writer cannot hang the job.
+        if thread.alive?
+          begin
+            Process.kill("KILL", -thread.pid)
+          rescue Errno::ESRCH
+            # The child exited between the liveness check and the signal.
+          end
+        end
+      end
+    end
+  end
+
+  def redact_agent_value(value, secrets)
+    case value
+    when Hash
+      value.to_h { |key, item| [ redact_agent_value(key, secrets), redact_agent_value(item, secrets) ] }
+    when Array
+      value.map { |item| redact_agent_value(item, secrets) }
+    when String
+      secrets.sort_by { |secret| -secret.length }.reduce(value) { |text, secret| text.gsub(secret, "[REDACTED]") }
+    else
+      value
     end
   end
 
@@ -94,7 +183,7 @@ module RunsClaudeAgent
       "--allowedTools", ALLOWED_TOOLS.join(","),
       "--permission-mode", "bypassPermissions",
       "--model", agent_model,
-      "--output-format", "text",
+      "--output-format", "stream-json", "--verbose",
       "--settings", hook_settings
     ]
   end
@@ -111,6 +200,7 @@ module RunsClaudeAgent
     {
       "PATH"                    => ENV["PATH"],
       "CLAUDE_CODE_OAUTH_TOKEN" => ENV["CLAUDE_CODE_OAUTH_TOKEN"],
+      "CLAUDE_CODE_OAUTH_TOKENS" => nil,
       "RAILS_API_URL"           => agent_api_url,
       "RAILS_API_KEY"           => agent_api_key,
       "AGENT_MODEL"             => agent_model,
@@ -119,6 +209,6 @@ module RunsClaudeAgent
       # Explicitly unset — subprocess must not access Rails credentials
       "RAILS_MASTER_KEY"        => nil,
       "SECRET_KEY_BASE"         => nil
-    }.compact
+    }
   end
 end

@@ -47,6 +47,12 @@ Rails.application.configure do
       description: "Syncs ministers, department mappings, contact info, and photos from ourcommons.ca",
       enabled_by_default: -> { Rails.env.production? }
     },
+    agent_run_cleanup: {
+      cron: "0 3 * * *",
+      class: "AgentRunCleanupJob",
+      description: "Deletes agent traces older than 60 days",
+      enabled_by_default: -> { Rails.env.production? }
+    },
     agent_weekly_scan: {
       cron: "0 2 * * 0", # Sundays at 2 AM
       class: "AgentWeeklyScanJob",

@@ -19,6 +19,7 @@ services:
       - DEFUDDLE_API_URL
       - APPSIGNAL_PUSH_API_KEY
       - CLAUDE_CODE_OAUTH_TOKEN
+      - CLAUDE_CODE_OAUTH_TOKENS
       - AGENT_API_KEY
     depends_on:
       worker:
@@ -49,6 +50,7 @@ services:
       - DEFUDDLE_API_URL
       - APPSIGNAL_PUSH_API_KEY
       - CLAUDE_CODE_OAUTH_TOKEN
+      - CLAUDE_CODE_OAUTH_TOKENS
       - AGENT_API_KEY
       - AGENT_MODEL
       # Agent subprocesses call back into the API; localhost:3000 is not the web container.
