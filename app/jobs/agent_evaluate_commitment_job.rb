@@ -1,15 +1,9 @@
 class AgentEvaluateCommitmentJob < ApplicationJob
-  include GoodJob::ActiveJobExtensions::Concurrency
   include RunsClaudeAgent
 
   queue_as :default
 
-  good_job_control_concurrency_with(
-    perform_limit: 5,
-    key: "AgentEvaluateCommitmentJob"
-  )
-
-  retry_on GoodJob::ActiveJobExtensions::Concurrency::ConcurrencyExceededError, wait: 60.seconds, attempts: Float::INFINITY
+  # Concurrency is bounded only by the worker's thread count (good_job.max_threads).
   retry_on StandardError, wait: 30.seconds, attempts: 3
 
   # Each run is a full agent session (~2 minutes). Skip commitments already
