@@ -108,13 +108,13 @@ class CommitmentRelevanceFilterJobTest < ActiveJob::TestCase
     assert_not_includes result.to_a, commitment
   end
 
-  test "excludes abandoned commitments regardless of date" do
+  test "excludes broken commitments regardless of date" do
     commitment = Commitment.create!(
       government: @government,
-      title: "Abandoned commitment",
-      description: "This was abandoned",
+      title: "Broken commitment",
+      description: "This was broken",
       commitment_type: :spending,
-      status: :abandoned,
+      status: :broken,
       date_promised: Date.new(2025, 1, 1)
     )
 

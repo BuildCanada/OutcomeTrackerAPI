@@ -28,7 +28,6 @@ module Api
           created: match.previously_new_record?
         }
       end
-
     end
   end
 end
