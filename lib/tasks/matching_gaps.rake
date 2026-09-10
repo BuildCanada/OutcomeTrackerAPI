@@ -274,7 +274,6 @@ namespace :matching do
 
     puts "\n" + "=" * 70
     puts "All gap-filling jobs enqueued."
-    puts "After jobs complete, run: rake matching:reassess"
     puts "=" * 70
   end
 

@@ -35,12 +35,6 @@ Rails.application.configure do
       description: "Generates evaluation criteria for commitments that don't have them yet",
       enabled_by_default: -> { Rails.env.production? }
     },
-    commitment_assessment: {
-      cron: "0 */6 * * *", # Every 6 hours
-      class: "CommitmentAssessmentCronJob",
-      description: "Assess commitments with new evidence matches",
-      enabled_by_default: -> { Rails.env.production? }
-    },
     target_date_extraction: {
       cron: "30 4 * * *", # Daily at 4:30 AM
       class: "TargetDateExtractionCronJob",

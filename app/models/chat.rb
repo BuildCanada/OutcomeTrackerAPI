@@ -3,6 +3,16 @@ class Chat < ApplicationRecord
 
   belongs_to :record, polymorphic: true, optional: true
 
+  class << self
+    # Rows from retired pipelines (CriterionAssessor, CommitmentStatusDeriver) remain as an
+    # audit log after their classes were removed. Load them as plain Chats instead of raising.
+    def find_sti_class(type_name)
+      super
+    rescue ActiveRecord::SubclassNotFound
+      self
+    end
+  end
+
   def system_prompt
   end
 

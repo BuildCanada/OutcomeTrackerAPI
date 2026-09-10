@@ -45,7 +45,7 @@ class Entry < ApplicationRecord
     end
     # Fetch data from external source
 
-    r = HTTP.timeout(connect: 10, read: 30).get(url)
+    r = PageFetcher.get(url, connect: 10, read: 30)
 
     if r.status >= 300 or r.status < 200
       Rails.logger.error("Error fetching data for entry #{id}: #{r.status}")
@@ -53,7 +53,7 @@ class Entry < ApplicationRecord
     end
     self.raw_html = Defuddle.prepare_html(r.body.to_s)
 
-    self.parsed_markdown, self.parsed_html = Defuddle.defuddle(raw_html)
+    self.parsed_markdown, self.parsed_html = Defuddle.defuddle(raw_html, url: url)
     self.scraped_at = Time.now
 
     self.is_index = document_relative_links.any?

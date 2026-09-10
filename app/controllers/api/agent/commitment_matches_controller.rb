@@ -8,10 +8,13 @@ module Api
           matchable_id: params.require(:matchable_id),
         )
 
+        # A match created by the agent has, by definition, already been reviewed.
         match.assign_attributes(
           relevance_score: params.require(:relevance_score),
           relevance_reasoning: params[:relevance_reasoning],
           matched_at: Time.current,
+          assessed: true,
+          assessed_at: Time.current,
         )
 
         match.save!
@@ -25,6 +28,7 @@ module Api
           created: match.previously_new_record?
         }
       end
+
     end
   end
 end
