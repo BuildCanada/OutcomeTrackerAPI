@@ -29,6 +29,15 @@ class CriterionTest < ActiveSupport::TestCase
 
     criterion.status = :met
     assert criterion.met?
+
+    criterion.status = :not_met
+    assert criterion.not_met?
+    assert_not criterion.met?
+  end
+
+  test "status enum does not generate scopes that collide with not_met" do
+    assert_not Criterion.respond_to?(:not_met)
+    assert_not Criterion.respond_to?(:met)
   end
 
   test "belongs to commitment" do

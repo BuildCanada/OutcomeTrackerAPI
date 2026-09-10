@@ -86,6 +86,10 @@ USER 1000:1000
 # Install Claude Code as the rails user
 RUN curl -fsSL https://claude.ai/install.sh | bash
 
+# Pre-trust the agent workspace so Claude Code honours agent/.claude/settings.json
+# (otherwise every headless run logs "this workspace has not been trusted").
+RUN printf '{"projects":{"/rails/agent":{"hasTrustDialogAccepted":true}}}\n' > /home/rails/.claude.json
+
 ENV PATH="/home/rails/.local/bin:$PATH"
 
 # Entrypoint prepares the database.
