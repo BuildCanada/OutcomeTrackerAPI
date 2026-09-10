@@ -31,7 +31,9 @@ class AgentRunTracingTest < ActiveSupport::TestCase
       STDERR.puts "warning secret-api-key"
       puts({type: "result", result: "done"}.to_json)
     CODE
-    assert run_script(script).success?
+    stdout, stderr = capture_subprocess_io { assert run_script(script).success? }
+    assert_empty stdout
+    assert_empty stderr
     run = AgentRun.order(:id).last
     assert_equal "succeeded", run.status
     assert_equal "session-1", run.session_id

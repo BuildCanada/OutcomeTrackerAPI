@@ -123,7 +123,6 @@ module RunsClaudeAgent
         if io == stdout && payload.is_a?(Hash) && payload["type"] == "result" && payload["is_error"]
           run.update!(status: "failed")
         end
-        STDERR.puts(payload.to_json)
       end
 
       begin
