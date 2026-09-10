@@ -19,6 +19,7 @@ services:
       - DEFUDDLE_API_URL
       - APPSIGNAL_PUSH_API_KEY
       - CLAUDE_CODE_OAUTH_TOKEN
+      - AGENT_API_KEY
     depends_on:
       worker:
         condition: service_started
@@ -48,4 +49,8 @@ services:
       - DEFUDDLE_API_URL
       - APPSIGNAL_PUSH_API_KEY
       - CLAUDE_CODE_OAUTH_TOKEN
+      - AGENT_API_KEY
+      - AGENT_MODEL
+      # Agent subprocesses call back into the API; localhost:3000 is not the web container.
+      - RAILS_API_URL=${RAILS_API_URL:-http://web:3000}
     restart: unless-stopped
