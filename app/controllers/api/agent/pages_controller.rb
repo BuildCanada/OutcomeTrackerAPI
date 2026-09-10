@@ -1,22 +1,24 @@
 module Api
   module Agent
     class PagesController < BaseController
-      ALLOWED_SUFFIXES = %w[.canada.ca .gc.ca].freeze
+      ALLOWED_SUFFIXES = %w[.canada.ca .gc.ca .parl.ca].freeze
 
       def fetch
         url = params.require(:url)
         government_id = params.require(:government_id)
 
         unless government_url?(url)
-          render json: { error: "URL must be on a *.canada.ca or *.gc.ca domain" }, status: :unprocessable_entity
+          render json: { error: "URL must be on a *.canada.ca, *.gc.ca, or *.parl.ca domain" }, status: :unprocessable_entity
           return
         end
 
         # Fetch and parse the page
-        response = HTTP.timeout(connect: 5, read: 20)
-          .headers("User-Agent" => "BuildCanada-Tracker/1.0")
-          .follow(max_hops: 3)
-          .get(url)
+        begin
+          response = PageFetcher.get(url)
+        rescue HTTP::TimeoutError, HTTP::ConnectionError, OpenSSL::SSL::SSLError, SocketError => e
+          render json: { error: "Failed to fetch: #{e.class.name.demodulize} (#{e.message})" }, status: :bad_gateway
+          return
+        end
 
         unless response.status.success?
           render json: { error: "Failed to fetch: HTTP #{response.status}" }, status: :bad_gateway
@@ -31,8 +33,13 @@ module Api
         end
 
         # Parse HTML to markdown
-        prepared_html = Defuddle.prepare_html(response.body.to_s)
-        parsed_markdown, _parsed_html = Defuddle.defuddle(prepared_html)
+        begin
+          prepared_html = Defuddle.prepare_html(response.body.to_s)
+          parsed_markdown, _parsed_html = Defuddle.defuddle(prepared_html, url: final_url)
+        rescue Defuddle::ParseError => e
+          render json: { error: "Failed to parse page: #{e.message}" }, status: :bad_gateway
+          return
+        end
 
         # Extract title and date from meta tags
         doc = Nokogiri::HTML(response.body.to_s)

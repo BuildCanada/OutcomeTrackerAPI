@@ -15,6 +15,8 @@ services:
       - SMTP_PASSWORD
       - SMTP_ADDRESS
       - GEMINI_API_KEY
+      - DEFUDDLE_API_KEY
+      - DEFUDDLE_API_URL
       - APPSIGNAL_PUSH_API_KEY
       - CLAUDE_CODE_OAUTH_TOKEN
     depends_on:
@@ -42,6 +44,8 @@ services:
       - SMTP_PASSWORD
       - SMTP_ADDRESS
       - GEMINI_API_KEY
+      - DEFUDDLE_API_KEY
+      - DEFUDDLE_API_URL
       - APPSIGNAL_PUSH_API_KEY
       - CLAUDE_CODE_OAUTH_TOKEN
     restart: unless-stopped

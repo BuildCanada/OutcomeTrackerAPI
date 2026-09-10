@@ -1,24 +1,45 @@
+require "http"
+require "json"
+
+# Client for the hosted BuildCanada defuddle worker, which extracts the main content of a
+# web page and returns it as markdown plus a cleaned HTML fragment.
+#
+# Configure with DEFUDDLE_API_KEY (required) and DEFUDDLE_API_URL (optional).
 module Defuddle
-  def self.defuddle(html)
-    temp_file = Tempfile.new("entry_html", encoding: "utf-8")
-    temp_file.write(html)
+  class ParseError < StandardError; end
 
-    md_json, err, status = Open3.capture3("defuddle", "parse", temp_file.path, "-m", "-j")
-    md_html, err, status = Open3.capture3("defuddle", "parse", temp_file.path, "-j")
+  DEFAULT_API_URL = "https://deffudler.svc.canadasbuilding.com".freeze
 
-    # replace anything before the first { deffudle returns errors and is dumb here.
-    md_json = "{" + md_json.split("{", 2).last
-    html_json = "{" + md_html.split("{", 2).last
+  class << self
+    # Sends already-fetched HTML to the worker and returns [markdown_content, html_content].
+    # The page URL is passed along so relative links and site-specific rules resolve correctly.
+    def defuddle(html, url:)
+      response = HTTP.timeout(connect: 5, read: 60)
+        .headers("X-API-Key" => api_key, "Content-Type" => "application/json")
+        .post("#{api_url}/api/convert", json: { url: url, html: html })
 
-    return JSON.parse(md_json)["content"], JSON.parse(html_json)["content"]
-  ensure
-    temp_file.close
-    temp_file.unlink
-  end
+      body = JSON.parse(response.body.to_s)
+      raise ParseError, "defuddle service returned HTTP #{response.status}: #{body["error"]}" unless response.status.success?
 
-  def self.prepare_html(html)
-    ic = Iconv.new("UTF-8//IGNORE", "UTF-8")
+      [ body["content"], body["html"] ]
+    rescue HTTP::Error, JSON::ParserError => e
+      raise ParseError, "defuddle service request failed: #{e.message}"
+    end
 
-    ic.iconv(html + " ")[0..-2]
+    def prepare_html(html)
+      ic = Iconv.new("UTF-8//IGNORE", "UTF-8")
+
+      ic.iconv(html + " ")[0..-2]
+    end
+
+    private
+
+    def api_url
+      ENV.fetch("DEFUDDLE_API_URL", DEFAULT_API_URL).chomp("/")
+    end
+
+    def api_key
+      ENV["DEFUDDLE_API_KEY"].presence || raise(ParseError, "DEFUDDLE_API_KEY is not set")
+    end
   end
 end

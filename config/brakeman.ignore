@@ -1,0 +1,59 @@
+{
+  "ignored_warnings": [
+    {
+      "warning_type": "Cross-Site Scripting",
+      "warning_code": 4,
+      "fingerprint": "2aa3ad93f74ccdf22492d14b0d070e303e4a218aa07944e62fcc798e97d68a47",
+      "check_name": "LinkToHref",
+      "message": "Potentially unsafe model attribute in `link_to` href",
+      "file": "app/views/avo/scraping_health/index.html.erb",
+      "line": 102,
+      "link": "https://brakemanscanner.org/docs/warning_types/link_to_href",
+      "code": "link_to((Unresolved Model).new.url, (Unresolved Model).new.url, :target => \"_blank\", :class => \"text-blue-600 hover:underline\", :title => (Unresolved Model).new.url)",
+      "render_path": [
+        {
+          "type": "controller",
+          "class": "Avo::ScrapingHealthController",
+          "method": "index",
+          "line": 23,
+          "file": "app/controllers/avo/scraping_health_controller.rb",
+          "rendered": {
+            "name": "avo/scraping_health/index",
+            "file": "app/views/avo/scraping_health/index.html.erb"
+          }
+        }
+      ],
+      "location": {
+        "type": "template",
+        "template": "avo/scraping_health/index"
+      },
+      "user_input": "(Unresolved Model).new.url",
+      "confidence": "Weak",
+      "cwe_id": [
+        79
+      ],
+      "note": "entry.url is rendered as a link only when it starts with http:// or https:// (see the guard in the view); Brakeman cannot see the conditional."
+    },
+    {
+      "warning_type": "Unmaintained Dependency",
+      "warning_code": 122,
+      "fingerprint": "98b26f60d776fd41ee6f088c833725145be9aac2d7c5b33780241c273622db42",
+      "check_name": "EOLRails",
+      "message": "Support for Rails 8.0.2 ends on 2026-10-07",
+      "file": "Gemfile.lock",
+      "line": 331,
+      "link": "https://brakemanscanner.org/docs/warning_types/unmaintained_dependency/",
+      "code": null,
+      "render_path": null,
+      "location": null,
+      "user_input": null,
+      "confidence": "Medium",
+      "cwe_id": [
+        1104
+      ],
+      "note": "Rails 8.0.x support ends 2026-10-07; the Rails upgrade is tracked separately from this scan."
+    }
+  ],
+  "updated": "2026-09-10",
+  "brakeman_version": "8.0.4"
+}

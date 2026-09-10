@@ -42,19 +42,6 @@ namespace :commitments do
       puts "Enqueued relevance filtering for #{count} StatCan datasets"
     end
 
-    desc "Phase 5: Run initial assessment on all commitments with unassessed matches"
-    task assess: :environment do
-      count = 0
-      commitment_ids = CommitmentMatch.unassessed.high_relevance
-        .select(:commitment_id).distinct.pluck(:commitment_id)
-
-      Commitment.where(id: commitment_ids).find_each do |commitment|
-        CommitmentAssessmentJob.perform_later(commitment)
-        count += 1
-      end
-      puts "Enqueued assessment for #{count} commitments"
-    end
-
     desc "Run all backfill phases in sequence"
     task all: :environment do
       puts "=== Phase 1: Generate Criteria ==="
@@ -64,8 +51,6 @@ namespace :commitments do
       puts "  rake commitments:backfill:entries"
       puts "  rake commitments:backfill:bills"
       puts "  rake commitments:backfill:statcan"
-      puts "Then after those finish:"
-      puts "  rake commitments:backfill:assess"
     end
   end
 end

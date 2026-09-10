@@ -98,7 +98,11 @@
                     <%= entry.published_at ? time_ago_in_words(entry.published_at) + " ago" : "—" %>
                   </td>
                   <td class="px-4 py-3 text-sm text-gray-500 max-w-xs truncate">
-                    <%= link_to entry.url, entry.url, target: "_blank", class: "text-blue-600 hover:underline", title: entry.url %>
+                    <% if entry.url.to_s.match?(%r{\Ahttps?://}) %>
+                      <%= link_to entry.url, entry.url, target: "_blank", class: "text-blue-600 hover:underline", title: entry.url %>
+                    <% else %>
+                      <%= entry.url %>
+                    <% end %>
                   </td>
                 </tr>
               <% end %>

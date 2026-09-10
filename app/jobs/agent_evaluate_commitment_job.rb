@@ -59,7 +59,7 @@ class AgentEvaluateCommitmentJob < ApplicationJob
       "--system-prompt", system_prompt,
       "--allowedTools", allowed_tools.join(","),
       "--permission-mode", "bypassPermissions",
-      "--model", ENV.fetch("AGENT_MODEL", "claude-sonnet-4-6"),
+      "--model", ENV.fetch("AGENT_MODEL", "claude-sonnet-5"),
       "--output-format", "text",
       "--settings", hook_settings
     ]
@@ -91,7 +91,7 @@ class AgentEvaluateCommitmentJob < ApplicationJob
       "CLAUDE_CODE_OAUTH_TOKEN" => ENV["CLAUDE_CODE_OAUTH_TOKEN"],
       "RAILS_API_URL"         => ENV.fetch("RAILS_API_URL", "http://localhost:3000"),
       "RAILS_API_KEY"         => Rails.application.credentials.dig(:agent, :api_key) || ENV["AGENT_API_KEY"],
-      "AGENT_MODEL"           => ENV.fetch("AGENT_MODEL", "claude-sonnet-4-6"),
+      "AGENT_MODEL"           => ENV.fetch("AGENT_MODEL", "claude-sonnet-5"),
       "COMMITMENT_ID"         => commitment_id&.to_s,
       "ENTRY_ID"              => entry_id&.to_s,
       # Explicitly unset — subprocess must not access Rails credentials
