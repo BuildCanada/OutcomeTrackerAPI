@@ -6,7 +6,7 @@ class AgentEvaluateCommitmentJob < ApplicationJob
   include GoodJob::ActiveJobExtensions::Concurrency
   good_job_control_concurrency_with(
     perform_limit: 5,
-    enqueue_limit: 550,
+    enqueue_limit: 2000,
     key: "AgentEvaluateCommitmentJob"
   )
 
