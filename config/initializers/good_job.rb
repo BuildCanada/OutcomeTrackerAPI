@@ -64,7 +64,7 @@ Rails.application.configure do
 
   # Queue configuration
   config.good_job.queues = "*"
-  config.good_job.max_threads = 5
+  config.good_job.max_threads = 10
 
 
   # Smaller batch size for better performance
